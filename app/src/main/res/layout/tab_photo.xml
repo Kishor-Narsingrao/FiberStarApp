@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/images"
+        android:layout_marginTop="50dp"
+        android:text="No Images"
+        android:layout_gravity="center"
+        android:textColor="@color/colorNearId"
+        android:textSize="30dp"
+        android:visibility="gone"/>
+   <ScrollView
+       android:layout_width="wrap_content"
+       android:layout_height="250dp"
+       android:id="@+id/imageScroll">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="250dp"
+            android:orientation="vertical">
+
+           <GridView
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/gridview"
+                android:layout_width="wrap_content"
+                android:layout_height="250dp"
+                android:numColumns="auto_fit"
+                android:verticalSpacing="10dp"
+                android:horizontalSpacing="10dp"
+                android:columnWidth="90dp"
+                android:stretchMode="columnWidth"
+                android:gravity="center"
+                />
+        </LinearLayout>
+    </ScrollView>
+
+     <ImageView
+            android:layout_width="360dp"
+            android:layout_height="150dp"
+            android:id="@+id/image_view8"
+            android:layout_gravity="center|center_horizontal"
+            android:layout_marginTop="5dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            >
+            </LinearLayout>
+
+            <!--<RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="50dp"
+                android:layout_alignParentBottom="true"
+                >-->
+                <Button
+                    android:id="@+id/select"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" Attach Image "
+                    android:textAllCaps="false"
+                    android:textSize="20sp"
+                    android:textColor="@color/colorWhite"
+                    android:background="@color/colorNearId"
+                    android:layout_gravity ="center|center_vertical"
+                    android:layout_alignParentBottom="true"
+                    />
+
+               <!-- <Button
+                    android:id="@+id/upload"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Upload"
+                    android:textSize="20sp"
+                    android:textColor="@color/colorWhite"
+                    android:background="@color/colorNearId"
+                    android:onClick="uploadImage"
+                    android:layout_marginLeft="200dp"
+                    android:layout_marginStart="200dp"
+                    android:layout_alignParentBottom="true"
+                    />-->
+            <!--</RelativeLayout>-->
+
+</LinearLayout>

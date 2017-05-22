@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/files"
+        android:layout_marginTop="50dp"
+        android:text="No Files"
+        android:layout_gravity="center"
+        android:textColor="@color/colorNearId"
+        android:textSize="30dp"
+        android:visibility="gone"/>
+
+    <ScrollView
+        android:id="@+id/fileScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/background_border"
+            >
+
+            <TableLayout
+                android:id="@+id/table_main"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:visibility="gone"
+                />
+
+            <ListView
+                android:id="@+id/lvFileDetails"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"></ListView>
+
+
+        </LinearLayout>
+
+    </ScrollView>
+   <!-- <Button
+        android:id="@+id/fileSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" Attach File "
+        android:layout_gravity="center|bottom"
+        android:textAllCaps="false"
+        android:textColor="@color/colorWhite"
+        android:background="@color/colorNearId"
+        android:layout_marginTop="-8dp"
+        android:textSize="25sp"
+        />-->
+
+    <LinearLayout
+        android:id="@+id/llSelectedFiles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/background_border"
+        android:layout_marginTop="2dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Selected Files to Upload :"/>
+
+        <TextView
+            android:id="@+id/tvSelectedFileName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="3dp"
+        android:layout_weight="1"
+        android:layout_alignParentBottom="true">
+    <Button
+        android:id="@+id/fileSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" Attach File "
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:textColor="@color/colorWhite"
+        android:background="@color/colorNearId"
+        android:layout_gravity ="center|center_vertical"
+        android:layout_alignParentBottom="true"
+        android:padding="3dp"
+        android:layout_weight=".5"
+        android:layout_marginRight="1dp"/>
+
+
+        <Button
+            android:id="@+id/btUploadFiles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Upload Files "
+            android:textAllCaps="false"
+            android:textSize="20sp"
+            android:padding="3dp"
+            android:textColor="@color/colorWhite"
+            android:background="@color/colorNearId"
+            android:layout_weight=".5"
+            android:layout_marginLeft="1dp"
+            android:layout_gravity ="center|center_vertical"
+            android:onClick="uploadImage"/>
+    </LinearLayout>
+
+    <!--<Button
+        android:id="@+id/fileSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select file"
+        android:textSize="20sp"
+        android:textColor="@color/colorWhite"
+        android:background="@color/colorNearId"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="130dp"
+        android:layout_marginStart="130dp"/>-->
+
+</LinearLayout>

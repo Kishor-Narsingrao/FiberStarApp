@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">FiberStarApp</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="title_activity_google__maps">Map</string>
+    <string name="title_activity_popup__menu">Popup_Menu</string>
+    <string name="title_activity_id__details">Id_Details</string>
+    <string name="title_activity_id__photo">Id_Photo</string>
+    <string name="title_activity_id__attachment">Id_Attachment</string>
+    <string name="title_activity_network_id_selection">FiberStar App</string>
+
+</resources>

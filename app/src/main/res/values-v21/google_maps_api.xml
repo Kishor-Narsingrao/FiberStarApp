@@ -1,0 +1,64 @@
+<!--<resources>
+    &lt;!&ndash;
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=93:33:DB:9B:C0:B4:58:B9:5D:5C:52:31:B5:80:9D:1B:11:01:93:7A%3Bfiberstar.aitek.com.fiberstar2
+
+    You can also add your credentials to an existing key, using this line: Raman
+    93:33:DB:9B:C0:B4:58:B9:5D:5C:52:31:B5:80:9D:1B:11:01:93:7A;fiberstar.aitek.com.fiberstar2
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    &ndash;&gt;
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAoZLQhqJV7pWTm9i3B5w1tR9CmG5PLWQk</string>
+
+
+</resources>-->
+
+<resources>
+   <!-- &lt;!&ndash;
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=93:33:DB:9B:C0:B4:58:B9:5D:5C:52:31:B5:80:9D:1B:11:01:93:7A%3Bfiberstar.aitek.com.fiberstar2
+
+    You can also add your credentials to an existing key, using this line: VenkatReddy
+    93:33:DB:9B:C0:B4:58:B9:5D:5C:52:31:B5:80:9D:1B:11:01:93:7A;fiberstar.aitek.com.fiberstar2
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    &ndash;&gt;
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyB2i8cBjG3SO07t4uIsB61vngWalrLRPNs</string>
+
+</resources>
+
+<!--
+<resources>
+&lt;!&ndash;
+TODO: Before you run your application, you need a Google Maps API key.
+
+To get one, follow this link, follow the directions and press "Create" at the end:
+
+https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=9E:C1:D3:8C:F6:74:B4:57:F2:C5:95:2D:DC:D2:1F:0E:B0:08:77:64%3Bfiberstar.aitek.com.fiberstar2
+
+You can also add your credentials to an existing key, using this line: Sushma
+9E:C1:D3:8C:F6:74:B4:57:F2:C5:95:2D:DC:D2:1F:0E:B0:08:77:64;fiberstar.aitek.com.fiberstar2
+
+Alternatively, follow the directions here:
+https://developers.google.com/maps/documentation/android/start#get-key
+
+Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+string in this file.
+&ndash;&gt;
+<string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyALgE37KTg8AKCP8GfcID1H56FOy1aGwC8</string>
+</resources>-->

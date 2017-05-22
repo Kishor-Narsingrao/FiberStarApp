@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="3dp"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="sg.com.aitek.fiberstarapp.GoogleMapsActivity"
+    tools:showIn="@layout/app_bar_google_maps"
+    android:id="@+id/relative_layout_fragment">
+<!--
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/relative_layout_fragment1">
+
+    </FrameLayout>-->
+
+
+
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+    <LinearLayout
+        android:id="@+id/llSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        android:layout_margin="5dp"
+        android:layout_marginTop="50dp"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/background_border">
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight=".9"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:imeOptions="actionNext"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".1"
+            android:onClick="SearchLocation"
+            android:text="Search"
+            android:imeOptions="actionDone"/>
+
+    </LinearLayout>
+        <Button
+            android:id="@+id/openpopup"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="   Show Near Network Ids   "
+            android:textAllCaps="false"
+            android:layout_gravity="bottom"
+            android:layout_alignParentBottom="true"
+            android:background="@color/colorNearId"
+            android:textColor="@color/colorWhite"
+            />
+    </RelativeLayout>
