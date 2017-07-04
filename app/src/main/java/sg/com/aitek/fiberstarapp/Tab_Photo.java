@@ -56,36 +56,42 @@ import java.util.Properties;
  */
 
 public class Tab_Photo extends Activity {
-    String serverPath;
+
+
     ImageView image_view8;
     Button select,upload;
     GridView gridView;
     TextView image_info;
+    Bitmap bitmap;
+    ProgressDialog prgDialog;
 
     ArrayList<Bitmap> bitmap_array ;
     String imgDecodableString;
+    String serverPath;
+    String key,user_role;
+    String filePath;
+    String encodedString;
+    String fileName;
 
     //database connection variables
     Connection connection;
     Statement statement;
     ResultSet resultSet;
-    String key,user_role;
-    String filePath;
+
+    DbConncetion dbConncetion;
+
     ImageAdapter adapter;
 
     ArrayList<String> images_list;
 
-    ProgressDialog prgDialog;
-    String encodedString;
     RequestParams params = new RequestParams();
-    String fileName;
-    Bitmap bitmap;
+
     private static int RESULT_LOAD_IMG = 1;
     private String time_fileName,org_file;
     private String system_id;
     private Context context;
     private String upload_url;
-    DbConncetion dbConncetion;
+
 
 
     public void onCreate(Bundle savedInstanceState) {
@@ -122,8 +128,6 @@ public class Tab_Photo extends Activity {
     }
 
     public void init() {
-
-
 
         try {
             Bundle bundle = getIntent().getExtras();
@@ -254,40 +258,8 @@ public class Tab_Photo extends Activity {
                 Toast.makeText(getApplicationContext(),"For selected Entity, we did't find a Element Id",Toast.LENGTH_LONG).show();
             }
 
-            //System.out.println("system_id before1: "+system_id);
-
-            /*if(connection==null){
-                connection   = dbConncetion.getConnection();
-                statement    = connection.createStatement();
-            }
-            else{
-                statement    = connection.createStatement();
-            }
-            query = "select * from library_image where element_id=\'"+system_id+"\'";
-            resultSet = statement.executeQuery(query);
-
-            while(resultSet.next()) {
-                image = resultSet.getString("image");
-                System.out.println("image from db: "+image);
-                images_list.add(image);
-                String image1 =serverPath+image;
-                URL url = new URL(image1);
-                Bitmap bmp1= null;
-                try {
-                    bmp1 = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                }
-                catch(FileNotFoundException fne){
-                    fne.printStackTrace();
-                }
-                bitmap_array.add(bmp1);
-                total_images++;
-            }*/
-
             initArraylist();
             getImages();
-
-
-
 
             //TODO: remove coment afer testing
 //            if(user_role.equalsIgnoreCase("Administrator")|| user_role.equalsIgnoreCase("Modifier")){
@@ -297,8 +269,8 @@ public class Tab_Photo extends Activity {
                     loadImagefromGallery();
                 }
             });
-//            }
-            /*else{
+            /*}
+            else{
                 select.setVisibility(View.GONE);
             }*/
 
@@ -432,7 +404,7 @@ public class Tab_Photo extends Activity {
         Intent intent = new Intent(this, ImagePickerActivity.class);
 
         intent.putExtra(ImagePickerActivity.INTENT_EXTRA_MODE, ImagePickerActivity.MODE_MULTIPLE);
-        intent.putExtra(ImagePickerActivity.INTENT_EXTRA_LIMIT, 5);
+        intent.putExtra(ImagePickerActivity.INTENT_EXTRA_LIMIT, 10);
         intent.putExtra(ImagePickerActivity.INTENT_EXTRA_SHOW_CAMERA, true);
         startActivityForResult(intent, RESULT_LOAD_IMG);
 
@@ -449,11 +421,6 @@ public class Tab_Photo extends Activity {
                 ArrayList<Image> images = data.getParcelableArrayListExtra(ImagePickerActivity.INTENT_EXTRA_SELECTED_IMAGES);
 //                Toast.makeText(getApplicationContext(),"total images: "+images.size(),Toast.LENGTH_LONG).show();
 
-                //Toast.makeText(getApplicationContext(),"image in string: "+images.toString() +" \n path: "+images.get(0).getPath(),Toast.LENGTH_LONG).show();
-
-//                prgDialog.setMessage("Please wait...");
-//                prgDialog.show();
-
                 if(images.size()>0) {
 
                     for (int i = 0; i < images.size(); i++) {
@@ -461,13 +428,6 @@ public class Tab_Photo extends Activity {
                         //System.out.println("image Name:" + i + " " + images.get(i).getName());
 
                         imgDecodableString = images.get(i).getPath();
-                        //System.out.println("image path from image to string: " + imgDecodableString);
-
-                        //added these lines for OutOfMemoryError
-                        //BitmapFactory.Options options = new BitmapFactory.Options();
-                        //options.inSampleSize = 8;
-
-                        //image_view8.setImageBitmap(BitmapFactory.decodeFile(imgDecodableString, options));
 
                         image_view8.setImageBitmap(BitmapFactory.decodeFile(imgDecodableString));
                         String fileNameSegments[] = imgDecodableString.split("/");
@@ -526,22 +486,6 @@ public class Tab_Photo extends Activity {
 
                                 prgDialog.hide();
 
-//                                setAdapter();
-//                                adapter.notifyDataSetChanged();
-
-                                /*Thread.sleep(10000);
-                                AlertDialog.Builder builder1 = new AlertDialog.Builder(Tab_Photo.this);
-                                builder1.setTitle("Selected Successfully");
-                                builder1.setMessage("Image selected successfully. Click ok to upload in server");
-                                builder1.setCancelable(true);
-                                builder1.setNeutralButton(android.R.string.ok,
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                dialog.cancel();
-                                            }
-                                        });
-                                AlertDialog alert11 = builder1.create();
-                                alert11.show();*/
                             } else {
                                 AlertDialog.Builder builder1 = new AlertDialog.Builder(Tab_Photo.this);
                                 builder1.setTitle("Image Selection");

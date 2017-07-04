@@ -34,6 +34,7 @@
         android:layout_margin="5dp"
         android:layout_marginTop="50dp"
         android:layout_alignParentTop="true"
+        android:visibility="gone"
         android:background="@drawable/background_border">
 
         <EditText
@@ -53,15 +54,37 @@
             android:imeOptions="actionDone"/>
 
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:weightSum="2">
         <Button
             android:id="@+id/openpopup"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="40dp"
             android:text="   Show Near Network Ids   "
             android:textAllCaps="false"
             android:layout_gravity="bottom"
-            android:layout_alignParentBottom="true"
+            android:layout_weight="1"
+            android:padding="3dp"
+            android:layout_marginRight="1dp"
             android:background="@color/colorNearId"
             android:textColor="@color/colorWhite"
             />
+        <Button
+            android:id="@+id/btViewNetworkId"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="   View Near Network Ids   "
+            android:textAllCaps="false"
+            android:layout_weight="1"
+            android:padding="3dp"
+            android:layout_marginLeft="1dp"
+            android:layout_gravity="bottom"
+            android:background="@color/colorNearId"
+            android:textColor="@color/colorWhite"
+            />
+    </LinearLayout>
     </RelativeLayout>

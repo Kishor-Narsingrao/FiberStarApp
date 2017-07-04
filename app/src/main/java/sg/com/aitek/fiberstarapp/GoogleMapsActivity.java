@@ -1,6 +1,8 @@
 package sg.com.aitek.fiberstarapp;
 
 import android.app.ProgressDialog;
+import android.app.ActionBar;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,13 +29,16 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatCallback;
 import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -75,13 +80,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 
 
-public class GoogleMapsActivity extends FragmentActivity
+public class GoogleMapsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleMap.OnCameraChangeListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
-    //AppCompatActivity
     Location Your_location;
     private GoogleMap mMap;
     LocationRequest mLocationRequest;
@@ -89,8 +93,10 @@ public class GoogleMapsActivity extends FragmentActivity
     Location mLastLocation;
     Marker mCurrLocationMarker;
     LatLngBounds latLngBounds;
+    Marker marker;
+
     EditText userInput;
-    Button btnOpenPopup;
+    Button btnOpenPopup,btnViewNetworkIds;
 
     List<String> database_siteList;
     Connection conn;
@@ -98,15 +104,15 @@ public class GoogleMapsActivity extends FragmentActivity
 
     String user, user_role;
     boolean status = true;
-    private Context context;
-
-    int count;
-    int radius;
-    List<String> entity_list = new ArrayList<String>();
-    Marker marker;
-
     Double sele_lat;
     Double sele_long;
+    int count;
+    int radius;
+
+    private Context context;
+    Circle mapCircle=null;
+
+    List<String> entity_list = new ArrayList<String>();
 
     private AppCompatDelegate mDelegate;
 
@@ -117,11 +123,14 @@ public class GoogleMapsActivity extends FragmentActivity
     public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS=101;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_google_maps);
+
+       Toolbar toolbar=(Toolbar)findViewById(R.id.toolbar);
+       setSupportActionBar(toolbar);
+
 
         context = this;
         loginActivity = new LoginActivity();
@@ -145,11 +154,11 @@ public class GoogleMapsActivity extends FragmentActivity
             }
         }
 
-        //status = LoginActivity.isConnected();
         Bundle bundle = getIntent().getExtras();
         user = bundle.getString("user");
 
         btnOpenPopup = (Button) findViewById(R.id.openpopup);
+        btnViewNetworkIds=(Button)findViewById(R.id.btViewNetworkId);
 
         session.checkLogin();
         session.createLoginSession(user);
@@ -157,16 +166,14 @@ public class GoogleMapsActivity extends FragmentActivity
         try {
             DbConncetion dbConncetion = new DbConncetion(context);
             conn = dbConncetion.getConnection();
-            //String user_role_query = "SELECT MODULE_ROLE from user_modules WHERE USER_ID = (SELECT USER_ID FROM USER_MASTER WHERE USER_NAME = \'" + user + "\')";
+
             if (conn != null) {
-                //Toast.makeText(getApplicationContext(), "connected successfully", Toast.LENGTH_SHORT).show();
                 statement = conn.createStatement();
                 String user_role_query = "SELECT MODULE_ROLE from user_modules WHERE USER_ID = (SELECT USER_ID FROM USER_MASTER WHERE USER_NAME = '" + user + "')";
                 ResultSet resultSet1 = statement.executeQuery(user_role_query);
                 if(resultSet1.next()) {
                     user_role = resultSet1.getString("MODULE_ROLE");
                 }
-                //Toast.makeText(getApplicationContext(), "user role is: " + user_role, Toast.LENGTH_SHORT).show();
             }
         }
         catch(SQLException sql){
@@ -196,6 +203,40 @@ public class GoogleMapsActivity extends FragmentActivity
             }
         });
 
+        btnViewNetworkIds.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (marker == null) {
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(GoogleMapsActivity.this);
+                    builder1.setTitle("Choose Location");
+                    builder1.setMessage("Please Select a Location on Map");
+                    builder1.setCancelable(true);
+                    builder1.setNeutralButton(android.R.string.ok,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert11 = builder1.create();
+                    alert11.show();
+                } else {
+                    radius=50;
+                    getEntityInfo();
+                    if (entity_list.size() > 0) {
+                        Intent network_id = new Intent(GoogleMapsActivity.this, Network_id_selection.class);
+                        network_id.putExtra("user", user);
+                        network_id.putExtra("user_role", user_role);
+                        network_id.putExtra("radius", radius);
+                        network_id.putExtra("selected_lat", sele_lat);
+                        network_id.putExtra("selected_long", sele_long);
+                        network_id.putStringArrayListExtra("entity_list", (ArrayList<String>) entity_list);
+                        startActivity(network_id);
+                    }
+                }
+            }
+        });
+
 
         database_siteList = new ArrayList<>();
 
@@ -221,8 +262,8 @@ public class GoogleMapsActivity extends FragmentActivity
             mapFragment.getMapAsync(GoogleMapsActivity.this);
         }
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        /*Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);*/
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -241,7 +282,7 @@ public class GoogleMapsActivity extends FragmentActivity
         int radiusM = radius;
         double latitude = lat;
         double longitude =lng;
-        Circle mapCircle=null;
+
 
         //to remove circle when refreshing the google map
         if(mapCircle!=null){
@@ -260,9 +301,11 @@ public class GoogleMapsActivity extends FragmentActivity
     }
 
     //Search Location by name in google Map
-    public void SearchLocation(View v) {
-        EditText etSearch=(EditText) findViewById(R.id.etSearch);
-        String Location=etSearch.getText().toString();
+    public void SearchLocation(String location) {
+
+//        EditText etSearch=(EditText) findViewById(R.id.etSearch);
+
+        String Location=location;//etSearch.getText().toString();
         List<android.location.Address> addressList = null;
 
         if(Location != null || !Location.equals(""))
@@ -272,25 +315,16 @@ public class GoogleMapsActivity extends FragmentActivity
             {
                 addressList=geocoder.getFromLocationName(Location,1);
 
-
                 android.location.Address address=addressList.get(0);
                 sele_lat=address.getLatitude();
                 sele_long=address.getLongitude();
                 LatLng latlng=new LatLng(sele_lat,sele_long);
 
-                Bitmap bitmap = getBitmap(getApplicationContext(),R.drawable.ic_circute);
-
                 //Clearing the marker from map
                 mMap.clear();
-                //adding new marker to the map
-//                marker=mMap.addMarker(new MarkerOptions().position(latlng).draggable(true));
-//                marker.setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
 
                 marker=mMap.addMarker(new MarkerOptions().position(latlng)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)).draggable(true));
-//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)).draggable(true));
-                //changing camera view to the selected area of marker in map
-//            mMap.animateCamera(CameraUpdateFactory.newLatLng(latlng));
 
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(19));
@@ -302,22 +336,29 @@ public class GoogleMapsActivity extends FragmentActivity
                 e.printStackTrace();
             }
         }
+
+
     }
 
     public void getEntityInfo() {
 
         addCircleToMap(radius,sele_lat,sele_long);
-        //Toast.makeText(GoogleMapsActivity.this, "Radius: " + radius, Toast.LENGTH_SHORT).show();
+
         database_siteList = new ArrayList<>();
+
         DbConncetion dbConncetion = new DbConncetion(context);
         conn = dbConncetion.getConnection();
+
         if (conn != null) {
-            //Toast.makeText(getApplicationContext(), "connected successfully", Toast.LENGTH_SHORT).show();
             try {
                 statement = conn.createStatement();
+
                 String query = "select * from vw_att_details_site";
+
                 ResultSet resultSet = statement.executeQuery(query);
+
                 while (resultSet.next()) {
+
                     String entity_type = "SITE:";
                     String site_id = resultSet.getString("site_id");
                     //String site_name = resultSet.getString("site_name");
@@ -381,14 +422,15 @@ public class GoogleMapsActivity extends FragmentActivity
                     String pole_long = resultSet.getString("longitude");
 
                     if(pole_id!=null && pole_lat!=null && pole_long!=null) {
-                        //System.out.println("From Pole-- pole_lat: " + pole_lat + " pole_long: " + pole_long);
                         String dataBase_latLong = entity_type + "," + pole_id + "," + pole_lat + "," + pole_long;
                         database_siteList.add(dataBase_latLong);
                     }
                 }
+
                 if (conn == null) {
                     conn = dbConncetion.getConnection();
                 }
+
                 //for adding splice closure entity latLongs
                 if (conn != null) {
                     resultSet = statement.executeQuery("select * from vw_att_details_spliceclosure");
@@ -405,7 +447,6 @@ public class GoogleMapsActivity extends FragmentActivity
 
                             if (chamber_id != null && chamber_lat != null && chamber_long != null) {
                                 String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
-                                //System.out.println("dataBase_latLong from chamber: " + dataBase_latLong);
                                 database_siteList.add(dataBase_latLong);
                             }
                         }
@@ -426,7 +467,6 @@ public class GoogleMapsActivity extends FragmentActivity
 
                             if (chamber_id != null && chamber_lat != null && chamber_long != null) {
                                 String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
-                                //System.out.println("dataBase_latLong from pole: " + dataBase_latLong);
                                 database_siteList.add(dataBase_latLong);
                             }
                         }
@@ -447,7 +487,6 @@ public class GoogleMapsActivity extends FragmentActivity
                     }
                 }
 
-                //resultSet = statement.executeQuery("SELECT ST_AsText(sp_geometry) as venkat  FROM vw_att_details_cable;");
                 resultSet = statement.executeQuery("SELECT *,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_cable");
                 while (resultSet.next()) {
                     String entity_type = "CABLE:";
@@ -456,30 +495,23 @@ public class GoogleMapsActivity extends FragmentActivity
                     String cable_lat = null;
                     String cable_long= null;
 
-                    //Toast.makeText(getApplicationContext(),"Results from cable: "+latLongs,Toast.LENGTH_LONG).show();
-                    //System.out.println("Results from cable with near NetworkIds: "+latLongs);
-
                     if(latLongs.contains("LINESTRING") || latLongs.contains("(") ||  latLongs.contains(")"))
                     {
                         String onlyLatLongs =  latLongs.replaceAll("[^0-9,. -]", "");
                         String array_of_latLongs[] = onlyLatLongs.split(",");
                         for(int i=0;i<array_of_latLongs.length;i++){
-                            //Toast.makeText(getApplicationContext(),"latlongs from db: "+i+ array_of_latLongs[i],Toast.LENGTH_LONG).show();
-                            //System.out.println("latlongs from db: "+i+": "+ array_of_latLongs[i]);
                             String longLat[] = array_of_latLongs[i].split(" ");
                             cable_lat = longLat[1];
                             cable_long = longLat[0];
 
                             if(cable_id!=null && cable_lat!=null && cable_long!=null) {
                                 String dataBase_latLong = entity_type + "," + cable_id + "," + cable_lat + "," + cable_long;
-                                //System.out.println("latlongs from db: "+dataBase_latLong);
                                 database_siteList.add(dataBase_latLong);
                             }
                         }
                     }
                 }
 
-                //resultSet = statement.executeQuery("SELECT *,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_circuit");
                 resultSet = statement.executeQuery("SELECT *,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_circuit");
                 while (resultSet.next()) {
                     String entity_type = "CIRCUIT:";
@@ -488,42 +520,22 @@ public class GoogleMapsActivity extends FragmentActivity
                     String cable_lat = null;
                     String cable_long= null;
 
-                    //Toast.makeText(getApplicationContext(),"Results from cable: "+latLongs,Toast.LENGTH_LONG).show();
-                    //System.out.println("Results from cable with near NetworkIds: "+latLongs);
-
                     if(latLongs.contains("LINESTRING") || latLongs.contains("(") ||  latLongs.contains(")"))
                     {
                         String onlyLatLongs =  latLongs.replaceAll("[^0-9,. -]", "");
                         String array_of_latLongs[] = onlyLatLongs.split(",");
                         for(int i=0;i<array_of_latLongs.length;i++){
-                            //Toast.makeText(getApplicationContext(),"latlongs from db: "+i+ array_of_latLongs[i],Toast.LENGTH_LONG).show();
-                            //System.out.println("latlongs from db: "+i+": "+ array_of_latLongs[i]);
                             String longLat[] = array_of_latLongs[i].split(" ");
                             cable_lat = longLat[1];
                             cable_long = longLat[0];
 
                             if(circuit_id!=null && cable_lat!=null && cable_long!=null) {
                                 String dataBase_latLong = entity_type + "," + circuit_id + "," + cable_lat + "," + cable_long;
-                                //System.out.println("latlongs from db: "+dataBase_latLong);
                                 database_siteList.add(dataBase_latLong);
                             }
                         }
                     }
                 }
-
-//                                                            //for adding splitter entity latLongs
-//                                                            resultSet = statement.executeQuery("select * from vw_att_details_splitter");
-//                                                            while (resultSet.next()) {
-//                                                                String entity_type = "SPLITTER:";
-//                                                                String splitter_id = resultSet.getString("splitter_id");
-//                                                                String splitter_lat = resultSet.getString("latitude");
-//                                                                String splitter_long = resultSet.getString("longitude");
-//
-//                                                                if(splitter_id!=null && splitter_lat!=null && splitter_long!=null) {
-//                                                                    String dataBase_latLong = entity_type + "," + splitter_id + "," + splitter_lat + "," + splitter_long;
-//                                                                    database_siteList.add(dataBase_latLong);
-//                                                                }
-//                                                            }
 
                 if (conn != null) {
                     resultSet = statement.executeQuery("select * from vw_att_details_splitter");
@@ -594,118 +606,91 @@ public class GoogleMapsActivity extends FragmentActivity
                 String arr[] = list.split(",");
 
                 if(arr.length==4) {
-                                                                /*System.out.println("arr[0] FROM BUTTON: " + arr[0]);
-                                                                System.out.println("arr[1] FROM BUTTON: " + arr[1]);
-                                                                System.out.println("arr[2] FROM BUTTON: " + arr[2]);
-                                                                System.out.println("arr[3] FROM BUTTON: " + arr[3]);*/
-
                     String type  = arr[0];
                     String key   = arr[1];
                     String lats  = arr[2];
                     String longs = arr[3];
-                                                            /*
-                                                            if(arr[0]!=null && !arr[0].isEmpty() && arr[0].length()>0 && arr[1]!=null && !arr[1].isEmpty() && arr[1].length()>0
-                                                                        && arr[2]!=null && !arr[2].isEmpty() && arr[2].length()>0
-                                                                        && arr[3]!=null && !arr[3].isEmpty() && arr[3].length()>0 ) {
-                                                                    System.out.println("list size: " + arr.length);
-                                                                    String type = arr[0];
-                                                                    System.out.println("arr[0] FROM BUTTON: " + arr[0]);
-                                                                    String key = arr[1];
-                                                                    System.out.println("arr[1] FROM BUTTON: " + arr[1]);
-                                                                    String lats = arr[2];
-                                                                    System.out.println("arr[2] FROM BUTTON: " + arr[2]);
-                                                                    String longs = arr[3];
-                                                                    System.out.println("arr[3] FROM BUTTON: " + arr[3]);
-                                                                    */
 
                     Double db_lat = Double.parseDouble(lats);
                     Double db_longs = Double.parseDouble(longs);
                     LatLng latLong = new LatLng(db_lat, db_longs);
 
-//                    addCircleToMap(radius,db_lat,db_longs);
-
                     LatLng southwest = SphericalUtil.computeOffset(marker.getPosition(), radius * Math.sqrt(2.0), 225);
                     LatLng northeast = SphericalUtil.computeOffset(marker.getPosition(), radius * Math.sqrt(2.0), 45);
                     latLngBounds = new LatLngBounds(southwest, northeast);
 
-                    //System.out.println("latLongs from db for cable: "+db_lat + " "+db_longs+" "+latLong);
-                    //System.out.println("latLongs from db for cable: ");
                     if (latLngBounds.contains(latLong)) {
-                        // System.out.println("latlong bounds contained latlong is: " + latLong);
-                        //count++;
                         System.out.println("count: " + count + " key Id: " + key+" type: "+type);
                         String keyType = type + key;
+
                         if (!entity_list.contains(keyType)) {
                             System.out.println("LatLong bound contains keyType: "+keyType);
                             entity_list.add(keyType);
                         }
 
-                        if(database_siteList.get(i).contains("POLE"))
+                        if(database_siteList.get(i).contains("CUST"))
                         {
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_pole);
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.customer);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
                         }
-                        else if(database_siteList.get(i).contains("CABLE")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_cable);
+                        else if(database_siteList.get(i).contains("POP")){
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.pop);
+                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
+                        }
+                        else if(database_siteList.get(i).contains("CHMBR")){
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.chamber);
+                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
+                        }
+                        else if(database_siteList.get(i).contains("POLE"))
+                        {
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.pole);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
                         }
                         else if(database_siteList.get(i).contains("SPCL")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_splice_closer);
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.spliceclosure);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
                         }
                         else if(database_siteList.get(i).contains("ODF")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_odf);
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.odf);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
                         }
+                        else if(database_siteList.get(i).contains("SPLITTER")){
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.splitter);
+                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
+                        }
+
+
+
+                        /*else if(database_siteList.get(i).contains("CABLE")){
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.cable);
+                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
+                        }
+
+
                         else if(database_siteList.get(i).contains("CIRCUIT")){
                             Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_circute);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
                         }
-                        else if(database_siteList.get(i).contains("SPLITTER")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_splitter);
+
+                        else if(database_siteList.get(i).contains("LGLK")){
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.logicallink);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
                         }
-                        else if(database_siteList.get(i).contains("LGLK")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_logical_link);
+
+                        else if(database_siteList.get(i).contains("SITE")){
+                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.site);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
                         }
                         else {
                             Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_circute);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
-                        }
+                        }*/
                     }
-
-                    // }
                 }
             }
         }
 
-        for(String list:entity_list){
-            System.out.println("list : " + list);
-        }
-
-        if (entity_list.size() > 0) {
-
-            /*Intent network_id = new Intent(GoogleMapsActivity.this, Network_id_selection.class);
-            network_id.putExtra("user", user);
-            network_id.putExtra("user_role", user_role);
-            network_id.putExtra("radius", radius);
-            network_id.putExtra("selected_lat", sele_lat);
-            network_id.putExtra("selected_long", sele_long);
-            network_id.putStringArrayListExtra("entity_list", (ArrayList<String>) entity_list);
-            startActivity(network_id);*/
-/*
-            for(String list:entity_list) {
-                LatLng latlng = new LatLng(sele_lat, sele_long);
-
-                Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_circuit);
-
-//                mMap.clear();
-                //adding new marker to the map
-                marker = mMap.addMarker(new MarkerOptions().position(latlng).snippet(list).draggable(true));
-                marker.setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
-            }*/
-        } else {
+        if (entity_list.size() == 0) {
             AlertDialog.Builder builder1 = new AlertDialog.Builder(GoogleMapsActivity.this);
             builder1.setTitle("No Nearby Network Entities");
             builder1.setMessage("Sorry No Network Entities are available around selected Location");
@@ -733,7 +718,7 @@ public class GoogleMapsActivity extends FragmentActivity
         // set prompts.xml to alertdialog builder
         alertDialogBuilder.setView(promptsView);
 
-          userInput = (EditText) promptsView
+        userInput = (EditText) promptsView
                 .findViewById(R.id.editTextDialogUserInput);
 
         // set dialog message
@@ -742,10 +727,7 @@ public class GoogleMapsActivity extends FragmentActivity
                 .setPositiveButton("OK",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,int id) {
-                                // get user input and set it to result
-                                // edit text
-                                //result.setText(userInput.getText());
-                                //Toast.makeText(GoogleMapsActivity.this, "userinput: "+userInput.getText(), Toast.LENGTH_SHORT).show();
+
                                 String given_radius = userInput.getText().toString();
 
                                 if(given_radius.length()<1){
@@ -863,9 +845,9 @@ public class GoogleMapsActivity extends FragmentActivity
         }
     }
 
-    public void setSupportActionBar(@Nullable Toolbar toolbar) {
+   /* public void setSupportActionBar(@Nullable Toolbar toolbar) {
         getDelegate().setSupportActionBar(toolbar);
-    }
+    }*/
 
     @NonNull
     public AppCompatDelegate getDelegate() {
@@ -887,11 +869,12 @@ public class GoogleMapsActivity extends FragmentActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         final ProgressDialog loading = ProgressDialog.show(this, "Loading...", "Please wait...", false, false);
 
         mMap = googleMap;
 
-        mMap.setPadding(0,100,0,0);
+        mMap.setPadding(0,0,0,100);
 
         LatLng country_map = new LatLng(2.4759444,112.8602515); //3.6607456,112.2450171  -- another latlong for indonesia
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(country_map, 4));
@@ -921,7 +904,9 @@ public class GoogleMapsActivity extends FragmentActivity
         }
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
             String db_id = null;
+
             @Override
             public void onMapClick(LatLng point) {
                 if (marker != null) {
@@ -936,32 +921,6 @@ public class GoogleMapsActivity extends FragmentActivity
                 sele_lat = point.latitude;
                 sele_long = point.longitude;
 
-              /*
-               removed 17/11/2016
-
-               if (conn != null) {
-                    try {
-                        String query_keyId = "select * from vw_att_details_site " +
-                                "where site_latitude=\'" + sele_lat + "\' and site_longitude=\'" + sele_long + "\'";
-                        System.out.println("query for site id: " + query_keyId);
-
-                        ResultSet resultSet = statement.executeQuery(query_keyId);
-                        if (resultSet.next()) {
-                            db_id = resultSet.getString("site_id");
-                        }
-                        resultSet = statement.executeQuery("select * from vw_att_details_customer where customer_lat=\'" + sele_lat +
-                                "\' and customer_long=\'" + sele_long + "\'");
-                        if (resultSet.next()) {
-                            db_id = resultSet.getString("system_id");
-                        }
-                    } catch (SQLException se) {
-                        se.printStackTrace();
-                    }
-                }
-
-
-                */
-
                 //place marker where user just clicked
                 marker = mMap.addMarker(new MarkerOptions().position(point)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)).draggable(true));
@@ -970,68 +929,8 @@ public class GoogleMapsActivity extends FragmentActivity
                     marker.setDraggable(true);
                 }
 
-
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(point));
-                //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point, mMap.getMinZoomLevel()));
-                //mMap.animateCamera(CameraUpdateFactory.zoomTo(14), 2000, null);
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(19));
-
-//                addCircleToMap(Integer.parseInt(userInput.getText().toString()),sele_lat,sele_long);
-
-               /* Circle circle = mMap.addCircle(new CircleOptions()
-                        .center(new LatLng(point.latitude, point.longitude))
-                        .radius(10)
-                        .strokeColor(Color.BLUE)
-                        .fillColor(Color.TRANSPARENT).strokeWidth(5));*/
-
-               /*
-
-               removed 17/11/2016
-
-
-                LatLng southwest = SphericalUtil.computeOffset(point, radius * Math.sqrt(2.0), 225);
-                LatLng northeast = SphericalUtil.computeOffset(point, radius * Math.sqrt(2.0), 45);
-                latLngBounds = new LatLngBounds(southwest, northeast);
-
-                List<String> latList = database_siteList;
-                for (int i = 0; i < database_siteList.size(); i++) {
-                    //for (String list : latList) {
-                    String list = database_siteList.get(i);
-
-                    String arr[] = list.split(",");
-
-                    if(arr.length==4) {
-
-                        if(arr[0]!=null && !arr[0].isEmpty() && arr[0].length()>0 && arr[1]!=null && !arr[1].isEmpty() && arr[1].length()>0
-                                && arr[2]!=null && !arr[2].isEmpty() && arr[2].length()>0 && arr[3]!=null && !arr[3].isEmpty() && arr[3].length()>0 ) {
-
-                            System.out.println("list size: " + arr.length);
-                            String type = arr[0];
-                            System.out.println("arr[0]: " + arr[0]);
-                            String key = arr[1];
-                            System.out.println("arr[1]: " + arr[1]);
-                            String lats = arr[2];
-                            System.out.println("arr[2]: " + arr[2]);
-                            String longs = arr[3];
-                            System.out.println("arr[3]: " + arr[3]);
-
-                            Double db_lat = Double.parseDouble(lats);
-                            Double db_longs = Double.parseDouble(longs);
-                            LatLng latLong = new LatLng(db_lat, db_longs);
-
-                            if (latLngBounds.contains(latLong)) {
-                                //System.out.println("latlong bounds contained latlong is: " + latLong);
-                                count++;
-                                //System.out.println("count: " + count + " key Id: " + key+" type: "+key);
-                                String keyType = type + key;
-                                if (!entity_list.contains(keyType)) {
-                                    entity_list.add(keyType);
-                                }
-                            }
-                        }
-                    }
-                }
-                */
             }
         });
 
@@ -1039,10 +938,8 @@ public class GoogleMapsActivity extends FragmentActivity
             @Override
             public boolean onMarkerClick(Marker marker) {
 
-//                Toast.makeText(getApplicationContext(), "maker is clicked", Toast.LENGTH_SHORT).show();
                 String key = null;
                 String coordinates=(marker.getPosition().latitude)+","+ (marker.getPosition().longitude); //marker.getSnippet();
-
 
                 for(int i =0;i<database_siteList.size();i++) {
                     if (database_siteList.get(i).contains(coordinates)) {
@@ -1060,10 +957,7 @@ public class GoogleMapsActivity extends FragmentActivity
 
                 marker.showInfoWindow();
                 if (key != null) {
-                    //Toast.makeText(getApplicationContext(), "Key for selected marker is: " + key, Toast.LENGTH_SHORT).show();
-                    //System.out.println("key values from Popup_Menu activity: "+key +" \nUser_Role is: "+user_role+" \nUser Name:"+user);
                     Intent intent = new Intent(GoogleMapsActivity.this, Popup_Menu.class);
-                    //Intent intent = new Intent(Google_MapsActivity.this, Network_id_selection.class);
                     intent.putExtra("key", key);
                     intent.putExtra("role", user_role);
                     intent.putExtra("userName", user);
@@ -1077,7 +971,6 @@ public class GoogleMapsActivity extends FragmentActivity
             @Override
             public void onMarkerDragStart(Marker arg0) {
                 // TODO Auto-generated method stub
-                // Toast.makeText(getApplicationContext(),"System out onMarkerDragStart..."+arg0.getPosition().latitude+"..."+arg0.getPosition().longitude,Toast.LENGTH_SHORT).show();
                 sele_lat = arg0.getPosition().latitude;
                 sele_long= arg0.getPosition().longitude;
             }
@@ -1086,8 +979,6 @@ public class GoogleMapsActivity extends FragmentActivity
             @Override
             public void onMarkerDragEnd(Marker arg0) {
                 // TODO Auto-generated method stub
-                //Log.d("System out", "onMarkerDragEnd..."+arg0.getPosition().latitude+"..."+arg0.getPosition().longitude);
-                //Toast.makeText(getApplicationContext(),"System out onMarkerDragEnd..."+arg0.getPosition().latitude+"..."+arg0.getPosition().longitude,Toast.LENGTH_SHORT).show();
                 sele_lat = arg0.getPosition().latitude;
                 sele_long= arg0.getPosition().longitude;
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(arg0.getPosition()));
@@ -1096,10 +987,8 @@ public class GoogleMapsActivity extends FragmentActivity
             @Override
             public void onMarkerDrag(Marker arg0) {
                 // TODO Auto-generated method stub
-                //Log.i("System out", "onMarkerDrag...");
                 sele_lat = arg0.getPosition().latitude;
                 sele_long= arg0.getPosition().longitude;
-                // Toast.makeText(getApplicationContext(),"System out onMarkerDrag...",Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -1151,17 +1040,6 @@ public class GoogleMapsActivity extends FragmentActivity
             mCurrLocationMarker.remove();
         }
 
-        //Place current location marker
-       /* LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));*/
-        //mCurrLocationMarker = mMap.addMarker(markerOptions);
-        //move map camera
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-
         Your_location = location;
         mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
@@ -1198,21 +1076,11 @@ public class GoogleMapsActivity extends FragmentActivity
     }
 
     public boolean checkLocationPermission(){
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_LOCATION);
-                //Toast.makeText(getApplicationContext(),"rey enable your location",Toast.LENGTH_LONG).show();
-
+        if (ContextCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},MY_PERMISSIONS_REQUEST_LOCATION);
             } else {
-                // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_LOCATION);
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},MY_PERMISSIONS_REQUEST_LOCATION);
             }
             return false;
         } else {
@@ -1225,38 +1093,25 @@ public class GoogleMapsActivity extends FragmentActivity
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    if (ContextCompat.checkSelfPermission(this,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
-
+                    if (ContextCompat.checkSelfPermission(this,android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         if (mGoogleApiClient == null) {
                             buildGoogleApiClient();
                         }
                         mMap.setMyLocationEnabled(true);
                     }
-
                 } else {
                     Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
                 }
                 return;
             }
 
+            //to read internal file Read_Externa_stoorage Permission
             case MY_PERMISSIONS_REQUEST_READ_CONTACTS:
 
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
+                if (grantResults.length > 0  && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
                     Toast.makeText(GoogleMapsActivity.this, "Permission denied to read your External storage", Toast.LENGTH_SHORT).show();
                 }
                 return;
@@ -1274,24 +1129,42 @@ public class GoogleMapsActivity extends FragmentActivity
         }
     }
 
-    @Override
+//    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+//        super.onCreateOptionsMenu(menu,inflater);
         getMenuInflater().inflate(R.menu.google_maps, menu);
+
+        MenuItem myActionMenuItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) myActionMenuItem.getActionView();//findViewById(R.id.searchView);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                SearchLocation(newText);
+                return false;
+            }
+        });
+
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+       /* if (id == R.id.action_settings) {
             return true;
-        }
+        }*/
 
         return super.onOptionsItemSelected(item);
     }
@@ -1304,13 +1177,7 @@ public class GoogleMapsActivity extends FragmentActivity
 
         if (id == R.id.nav_home) {
             // Handle the camera action
-        } /*else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } */else if (id == R.id.nav_logout) {
+        } else if (id == R.id.nav_logout) {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(GoogleMapsActivity.this);
             alertDialog.setTitle("Confirm Logout");
             alertDialog.setMessage("Are you sure you want Logout?");

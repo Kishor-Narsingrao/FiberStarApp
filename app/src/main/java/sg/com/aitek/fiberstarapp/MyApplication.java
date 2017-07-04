@@ -5,6 +5,7 @@ import android.app.Application;
 /**
  * Created by Venkat on 8/2/2016.
  */
+
 public class MyApplication extends Application {
 
     private static MyApplication mInstance;

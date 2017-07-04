@@ -70,11 +70,11 @@
         >
 
         <TextView
+            android:id="@+id/tvId"
             android:layout_width="180dp"
             android:layout_height="wrap_content"
-            android:text="Site Id"
-            android:textSize="20sp"
-            />
+            android:text="Entity Id"
+            android:textSize="20sp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -103,7 +103,7 @@
         <TextView
             android:layout_width="180dp"
             android:layout_height="wrap_content"
-            android:text="Site Latitude"
+            android:text="Latitude"
             android:textSize="20sp"
             />
 
@@ -131,7 +131,7 @@
         <TextView
             android:layout_width="180dp"
             android:layout_height="wrap_content"
-            android:text="Site Longitude"
+            android:text="Longitude"
             android:textSize="20sp"
             />
 
@@ -159,11 +159,11 @@
         >
 
         <TextView
+            android:id="@+id/textView"
             android:layout_width="180dp"
             android:layout_height="wrap_content"
-            android:text="Site Name"
-            android:textSize="20sp"
-            />
+            android:text="Entity Name"
+            android:textSize="20sp" />
 
         <TextView
             android:layout_width="wrap_content"

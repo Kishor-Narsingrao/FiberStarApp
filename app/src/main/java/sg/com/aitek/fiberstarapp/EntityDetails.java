@@ -7,7 +7,6 @@ public class EntityDetails extends AppCompatActivity {
 
     String key=null,user_role=null,user_Name=null;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,7 +17,6 @@ public class EntityDetails extends AppCompatActivity {
             key       = bundle.getString("key");
             user_role = bundle.getString("role");
             user_Name = bundle.getString("userName");
-            //System.out.println("key values from Popup_Menu activity: "+key +" \nUser_Role is: "+user_role+" \nUser Name:"+user_Name);
         }
     }
 }

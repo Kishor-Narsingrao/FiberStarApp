@@ -10,13 +10,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-/**
- * Created by Venkat on 7/25/2016.
- */
+
 public class DbConncetion {
     private Context context;
     private Properties properties;
     Connection conn;
+
     public DbConncetion(Context context) {
         this.context = context;
         properties = new Properties();

@@ -63,17 +63,24 @@ import static android.R.attr.path;
 import static android.R.id.list;
 
 
-/**
- * Created by Venkat on 7/27/2016.
- */
 public class Tab_Attachment extends Activity {
 
-    //final String serverPath = "http://172.16.28.39:80/Image/";
-    //final String serverPath = "http://192.168.1.41:808/Image/";
-    String serverPath;
     Button select,upload;
     TextView file_info;
+    ProgressDialog prgDialog;
+    TableRow tbrow;
+    ListView lvFileDetails;
+    TextView tvSelectedFileName;
+    LinearLayout llSelectedFileNames;
+    Bitmap bitmap;
+
+    ArrayAdapter<String> adapter;
+
     String imgDecodableString;
+    String serverPath;
+    String encodedString;
+    String fileName,key;
+    String strFileName=null;
 
     //database connection variables
     Connection connection;
@@ -81,12 +88,10 @@ public class Tab_Attachment extends Activity {
 
     ArrayList<String> images_list = new ArrayList<>();
     ArrayList<String> size_list = new ArrayList<>();
+    private ArrayList<String> AttachmentFilesArray;
 
-    ProgressDialog prgDialog;
-    String encodedString;
     RequestParams params = new RequestParams();
-    String fileName,key;
-    Bitmap bitmap;
+
     private static int RESULT_LOAD_IMG = 1;
     private String time_fileName,org_file;
     private String system_id;
@@ -95,15 +100,8 @@ public class Tab_Attachment extends Activity {
     private String user_role;
     private Context context;
     private String upload_url;
-    private ArrayList<String> AttachmentFilesArray;
+
     int attchmentFileArraySize=5;
-    TableRow tbrow;
-    ListView lvFileDetails;
-    ArrayAdapter<String> adapter;
-    TextView tvSelectedFileName;
-    LinearLayout llSelectedFileNames;
-
-
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,17 +113,16 @@ public class Tab_Attachment extends Activity {
         upload_url                = properties.getProperty("upload.url");
         serverPath                = properties.getProperty("serverPath");
 
-
-
-
         select      = (Button) findViewById(R.id.fileSelect);
         file_info   = (TextView) findViewById(R.id.files);
-        prgDialog = new ProgressDialog(this);
-        prgDialog.setCancelable(false);
-        AttachmentFilesArray=new ArrayList<>();
         lvFileDetails=(ListView) findViewById(R.id.lvFileDetails);
         tvSelectedFileName=(TextView)findViewById(R.id.tvSelectedFileName);
         llSelectedFileNames=(LinearLayout)findViewById(R.id.llSelectedFiles);
+
+        prgDialog = new ProgressDialog(this);
+        prgDialog.setCancelable(false);
+
+        AttachmentFilesArray=new ArrayList<>();
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -152,20 +149,12 @@ public class Tab_Attachment extends Activity {
                 key           = key.replaceFirst(replace,"");
             }
             System.out.println("key id after: "+key);
-            /*String query = "select * from vw_att_details_site where site_id=\'"+key+"\'";
-            System.out.println("query for Image storing: "+query);
-            ResultSet resultSet = statement.executeQuery(query);
-
-            while (resultSet.next()){
-                system_id = resultSet.getString("system_id");
-            }*/
 
             String query = "select * from vw_att_details_site where site_id=\'" + key + "\'";
             if(key_type.equalsIgnoreCase("site")) {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -174,7 +163,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -183,7 +171,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -192,7 +179,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -201,7 +187,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -210,7 +195,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -219,7 +203,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
             else if(key_type.equalsIgnoreCase("CABLE")) {
@@ -227,7 +210,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -237,7 +219,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -246,7 +227,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -255,7 +235,6 @@ public class Tab_Attachment extends Activity {
                 ResultSet resultSet1 = statement.executeQuery(query);
                 while (resultSet1.next()) {
                     system_id = resultSet1.getString("system_id");
-                    //System.out.println("system_id before: "+system_id);
                 }
             }
 
@@ -290,7 +269,6 @@ public class Tab_Attachment extends Activity {
                                     PreparedStatement pstmt = connection.prepareStatement(DeleteQuery);
                                     int i = pstmt.executeUpdate();
 
-//                                    getFileDetails();
                                     images_list.remove(position);
                                     adapter.notifyDataSetChanged();
                                 }catch (Exception e)
@@ -307,7 +285,6 @@ public class Tab_Attachment extends Activity {
                             }
                         }).show();
 
-//                images_list.remove(position);
                 adapter.notifyDataSetChanged();
 
                 return false;
@@ -315,27 +292,26 @@ public class Tab_Attachment extends Activity {
         });
 
         //todo: remove comment after testing
-//        if(user_role.equalsIgnoreCase("Administrator")|| user_role.equalsIgnoreCase("Modifier")){
+//        if(user_role.equalsIgnoreCase("Administrator")|| user_role.equalsIgnoreCase("Modifier")) {
             select.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     loadFilefromMobile();
                 }
             });
-
-//        init();
+//        }
     }
 
-
-    public void getFileDetails()
-    {
+    public void getFileDetails(){
         try {
             images_list=new ArrayList<>();
             String query = "select * from attachment_details where system_id=\'" + system_id + "\'";
-            //System.out.println("query for Image storing: "+query);
+
             ResultSet resultSet = statement.executeQuery(query);
+
             String image = null;
             int file_size = 0;
+
             while (resultSet.next()) {
                 image = resultSet.getString("file_name");
                 file_size = resultSet.getInt("file_size");
@@ -352,7 +328,7 @@ public class Tab_Attachment extends Activity {
         lvFileDetails.setAdapter(adapter);
     }
 
-//Display the attached file in table view
+    //Display the attached file in table view
     public void init() {
         TableLayout tableLayout = (TableLayout) findViewById(R.id.table_main);
         TableRow tbrow0 = new TableRow(this);
@@ -443,10 +419,10 @@ public class Tab_Attachment extends Activity {
         }
     }
 
-String strFileName=null;
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         try {
             // When an Image is picked
             if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
@@ -456,15 +432,12 @@ String strFileName=null;
                 String[] filePathColumn = { "_data"};  //MediaStore.Images.Media.DATA };
 
                 String req_path = getPath(context,selectedImage);
-                //System.out.println("file path from getpath method: "+req_path);
 
                 Cursor cursor = getContentResolver().query(selectedImage,filePathColumn, null, null, null);
                 if(cursor!=null) {
                     cursor.moveToFirst();
                     int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
                     imgDecodableString = cursor.getString(columnIndex);
-                    //System.out.println("image column index: "+imgDecodableString);
-                    //Toast.makeText(getApplicationContext(),"image path from cursor: "+imgDecodableString,Toast.LENGTH_LONG).show();
 
                     if(imgDecodableString==null) {
                         imgDecodableString = req_path;
@@ -493,35 +466,30 @@ String strFileName=null;
         }
     }
 
-
     public void InsertRecord(String Filepath) {
         try
         {
             File file = new File(Filepath);
+
             long image_size_in_byte = file.length();
-            //System.out.println("image size in byte: "+image_size_in_byte);
             int image_size_in_bytes = (int)image_size_in_byte;
             int total_size = 0;
+
             if(connection!=null){
                 String query = "select * from attachment_details where system_id= \'"+system_id+"\'";
                 ResultSet resultSet = statement.executeQuery(query);
                 while (resultSet.next()){
                     int size = resultSet.getInt("file_size");
-                    //System.out.println("Total file limit: "+size);
                     total_size = total_size + size;
-                    //System.out.println("Total fize adding: "+total_size);
                 }
             }
 
-            //System.out.println("Total file size from db: "+total_size + " current file size: "+ image_size_in_bytes);
             int db_toal_size = total_size + image_size_in_bytes;
             double kb =(db_toal_size / 1024);
-            //double kb =db_toal_size;
             double mb = (kb / 1024);
 
-            //System.out.println("length if image: "+image_size_in_bytes+" \ndb_total: "+db_toal_size+" \nkb total: "+kb+" \nmb total:"+mb);
-
             int file_limit = 0;
+
             if(connection!=null){
                 String query = "select * from gs_attachmentsize where id= 0";
                 ResultSet resultSet = statement.executeQuery(query);
@@ -530,12 +498,9 @@ String strFileName=null;
                 }
             }
 
-            //System.out.println("Total file limit: "+file_limit);
-            //Toast.makeText(getApplicationContext(),"Total file limit: "+file_limit + " and your mb size is: "+mb,Toast.LENGTH_LONG).show();
 
             if(mb > file_limit ){
-                    /*Toast.makeText(getApplicationContext(),"Can not upload as the size of attachment crosses threashold limit." +
-                            " Please contact Super Administrator",Toast.LENGTH_LONG).show();*/
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Please contact Super Administrator");
                 builder.setMessage("Can not upload as the size of attachment crosses threshold limit!")
@@ -557,9 +522,7 @@ String strFileName=null;
                             "values(?,?,?,?,?,?,?,?,?,?)";
                     PreparedStatement st = connection.prepareStatement(query);
                     st.setString(1, system_id);
-                    //Todo: change the userid to random, for testing it is static
-//                    st.setInt(2, Integer.parseInt(user_id));
-                    st.setInt(2, Integer.parseInt("101"));
+                    st.setInt(2, Integer.parseInt(user_id));
                     st.setString(3, user_Name);
                     st.setString(4, org_file);
                     st.setString(5, time_fileName);
@@ -570,8 +533,6 @@ String strFileName=null;
                     st.setString(10, "SITE");
                     int count = st.executeUpdate();
                     if (count > 0) {
-                        //Toast.makeText(getApplicationContext(), "Data Inserted successfully", Toast.LENGTH_SHORT).show();
-                        // uploadImage();
                     }
                     else{
                         AlertDialog.Builder builder1 = new AlertDialog.Builder(Tab_Attachment.this);
@@ -607,7 +568,6 @@ String strFileName=null;
                 String FilePath=AttachmentFilesArray.get(i);
                 String fileNameSegments[] = FilePath.split("/");
                 fileName = fileNameSegments[fileNameSegments.length - 1];
-                //System.out.println("fileName "+fileName);
 
                 String filenameArray[] = fileName.split("\\.");
                 String file = filenameArray[0];
@@ -617,9 +577,6 @@ String strFileName=null;
                 String timestamp = simpleDateFormat.format(new Date());
                 org_file = file + "." + extension;
                 time_fileName = file + "_" + timestamp + "." + extension;
-
-                //.out.println("image path url: "+serverPath+time_fileName);
-                //Toast.makeText(getApplicationContext(),"image path url: "+serverPath+time_fileName,Toast.LENGTH_LONG).show();
 
                 params.put("filename", time_fileName);
 
@@ -645,6 +602,7 @@ String strFileName=null;
                             Toast.LENGTH_LONG).show();
                 }
             }
+            Toast.makeText(getApplicationContext(),"Uploaded Sucessfully.",Toast.LENGTH_LONG).show();
         }
         else {
             Toast.makeText(getApplicationContext(),"You must select File from storage to upload",Toast.LENGTH_LONG).show();
@@ -653,74 +611,53 @@ String strFileName=null;
 
     // AsyncTask - To convert Image to String
     public void encodeImagetoString(String imgDecodableString) {
-       /* new AsyncTask<Void, Void, String>() {
-
-            protected void onPreExecute() {
-
-            };
-
-            @Override
-            protected String doInBackground(Void... params) {*/
         BitmapFactory.Options options = null;
         options = new BitmapFactory.Options();
         options.inSampleSize = 3;
+
         bitmap = BitmapFactory.decodeFile(imgDecodableString,options);
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        // Must compress the Image to reduce image size to make upload easy
-        //bitmap.compress(Bitmap.CompressFormat.PNG, 50, stream);
+
         byte[] byte_arr = stream.toByteArray();
         // Encode Image to String
         encodedString = Base64.encodeToString(byte_arr, 0);
 
-try {
-    FileInputStream fis = new FileInputStream(imgDecodableString);
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    byte[] b = new byte[1024];
+        try {
+            FileInputStream fis = new FileInputStream(imgDecodableString);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] b = new byte[1024];
 
-    for (int readNum; (readNum = fis.read(b)) != -1;) {
-        bos.write(b, 0, readNum);
-    }
+            for (int readNum; (readNum = fis.read(b)) != -1;) {
+                bos.write(b, 0, readNum);
+            }
 
-    byte[] bytes = bos.toByteArray();
-    encodedString = Base64.encodeToString(bytes, 0);
+            byte[] bytes = bos.toByteArray();
+            encodedString = Base64.encodeToString(bytes, 0);
 
-
-}catch (Exception e)
-{
-    e.printStackTrace();
-}
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
         // Put converted Image string into Async Http Post param
         params.put("image", encodedString);
         // Trigger Image upload
         triggerImageUpload();
-               /* return "";
-            }
 
-            @Override
-            protected void onPostExecute(String msg) {
-                prgDialog.setMessage("Uploading file");
-                // Put converted Image string into Async Http Post param
-                params.put("image", encodedString);
-                // Trigger Image upload
-                triggerImageUpload();
-            }
-        }.execute(null, null, null);*/
     }
-
 
     public void triggerImageUpload() {
-        makeHTTPCall();
-    }
+       String response= makeHTTPCall();
 
-    // http://192.168.2.4:9000/imgupload/upload_image.php
-    // http://192.168.2.4:9999/ImageUploadWebApp/uploadimg.jsp
+    }
+    String strResponse;
+
     // Make Http call to upload Image to Java server
-    public void makeHTTPCall() {
-        //prgDialog.setMessage("Invoking JSP");6
+    public String makeHTTPCall() {
         prgDialog.setMessage("storing in server");
         AsyncHttpClient client = new AsyncHttpClient();
+
+
         // Don't forget to change the IP address to your LAN address. Port no as well.
-        //client.post("http://172.16.28.39:8080/ImageUploadWebApp/",
         client.post(upload_url,
                 params, new AsyncHttpResponseHandler() {
                     // When the response returned by REST has Http
@@ -730,8 +667,7 @@ try {
                         // Hide Progress Dialog
                         prgDialog.hide();
 
-                        /*Toast.makeText(getApplicationContext(), response,Toast.LENGTH_LONG).show();*/
-                        AlertDialog.Builder builder1 = new AlertDialog.Builder(Tab_Attachment.this);
+                       /* AlertDialog.Builder builder1 = new AlertDialog.Builder(Tab_Attachment.this);
                         builder1.setTitle("Upload Success");
                         builder1.setMessage("Attachment uploaded successfully");
                         builder1.setCancelable(true);
@@ -743,8 +679,10 @@ try {
                                 });
 
                         AlertDialog alert11 = builder1.create();
-                        alert11.show();
+                        alert11.show();*/
+                       Toast.makeText(getApplicationContext(),"Uploading in Progress",Toast.LENGTH_SHORT).show();
 
+                        strResponse=response;
                     }
 
                     // When the response returned by REST has Http
@@ -775,8 +713,10 @@ try {
                                             + statusCode, Toast.LENGTH_LONG)
                                     .show();
                         }
+                        strResponse=String.valueOf(statusCode);
                     }
                 });
+        return  strResponse;
     }
 
     @Override
@@ -852,16 +792,7 @@ try {
         return null;
     }
 
-    /**
-     * Get the value of the data column for this Uri. This is useful for
-     * MediaStore Uris, and other file-based ContentProviders.
-     *
-     * @param context The context.
-     * @param uri The Uri to query.
-     * @param selection (Optional) Filter used in the query.
-     * @param selectionArgs (Optional) Selection arguments used in the query.
-     * @return The value of the _data column, which is typically a file path.
-     */
+
     public static String getDataColumn(Context context, Uri uri, String selection,
                                        String[] selectionArgs) {
 
@@ -885,26 +816,17 @@ try {
         return null;
     }
 
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is ExternalStorageProvider.
-     */
+
     public static boolean isExternalStorageDocument(Uri uri) {
         return "com.android.externalstorage.documents".equals(uri.getAuthority());
     }
 
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is DownloadsProvider.
-     */
+
     public static boolean isDownloadsDocument(Uri uri) {
         return "com.android.providers.downloads.documents".equals(uri.getAuthority());
     }
 
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is MediaProvider.
-     */
+
     public static boolean isMediaDocument(Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
