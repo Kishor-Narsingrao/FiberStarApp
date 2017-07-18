@@ -24,7 +24,7 @@ public class Popup_Menu extends TabActivity {
             key       = bundle.getString("key");
             user_role = bundle.getString("role");
             user_Name = bundle.getString("userName");
-            //System.out.println("key values from Popup_Menu activity: "+key +" \nUser_Role is: "+user_role+" \nUser Name:"+user_Name);
+            System.out.println("key values from Popup_Menu activity: "+key +" \nUser_Role is: "+user_role+" \nUser Name:"+user_Name);
         }
 
         // Android tab
@@ -55,9 +55,9 @@ public class Popup_Menu extends TabActivity {
         tabHost.addTab(tabSpecAttachment);
 
         //set Windows tab as default (zero based)
-        tabHost.getTabWidget().getChildAt(0).getLayoutParams().width = 50;
+        tabHost.getTabWidget().getChildAt(0).getLayoutParams().width = 40;
         tabHost.getTabWidget().getChildAt(1).getLayoutParams().width = 50;
-        tabHost.getTabWidget().getChildAt(2).getLayoutParams().width = 50;
+        tabHost.getTabWidget().getChildAt(2).getLayoutParams().width = 60;
 
         tabHost.setCurrentTab(0);
     }

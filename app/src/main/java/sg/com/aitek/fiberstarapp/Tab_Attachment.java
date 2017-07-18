@@ -602,12 +602,53 @@ public class Tab_Attachment extends Activity {
                             Toast.LENGTH_LONG).show();
                 }
             }
-            Toast.makeText(getApplicationContext(),"Uploaded Sucessfully.",Toast.LENGTH_LONG).show();
+            AttachmentFilesArray.clear();
+            tvSelectedFileName.setText("");
+//            Toast.makeText(getApplicationContext(),"Uploaded Sucessfully.",Toast.LENGTH_LONG).show();
         }
         else {
             Toast.makeText(getApplicationContext(),"You must select File from storage to upload",Toast.LENGTH_LONG).show();
         }
     }
+
+
+
+    public static int calculateInSampleSize(BitmapFactory.Options options,
+                                            int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and
+            // keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        return inSampleSize;
+    }
+
+    public static Bitmap decodeSampledBitmapFromResource(String strPath,int reqWidth, int reqHeight) {
+
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(strPath, options);
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options,reqWidth,
+                reqHeight);
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeFile(strPath, options);
+    }
+
 
     // AsyncTask - To convert Image to String
     public void encodeImagetoString(String imgDecodableString) {
@@ -615,6 +656,7 @@ public class Tab_Attachment extends Activity {
         options = new BitmapFactory.Options();
         options.inSampleSize = 3;
 
+        bitmap =decodeSampledBitmapFromResource(imgDecodableString,100,100);
         bitmap = BitmapFactory.decodeFile(imgDecodableString,options);
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
@@ -623,7 +665,7 @@ public class Tab_Attachment extends Activity {
         encodedString = Base64.encodeToString(byte_arr, 0);
 
         try {
-            FileInputStream fis = new FileInputStream(imgDecodableString);
+           /* FileInputStream fis = new FileInputStream(imgDecodableString);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             byte[] b = new byte[1024];
 
@@ -632,7 +674,26 @@ public class Tab_Attachment extends Activity {
             }
 
             byte[] bytes = bos.toByteArray();
-            encodedString = Base64.encodeToString(bytes, 0);
+            encodedString = Base64.encodeToString(bytes, 0);*/
+
+            int bytesRead, bytesAvailable, bufferSize;
+            byte[] buffer;
+            int maxBufferSize = 1*1024*1024;
+
+            FileInputStream fis = new FileInputStream(imgDecodableString);
+
+            // create a buffer of maximum size
+            bytesAvailable = fis.available();
+            bufferSize = Math.min(bytesAvailable, maxBufferSize);
+            buffer = new byte[bufferSize];
+            // read file and write it into form...
+            bytesRead = fis.read(buffer, 0, bufferSize);
+
+            if(bytesRead >0)
+            {
+//                byte[] bytes =toByteArray();
+                encodedString = Base64.encodeToString(buffer, 0);
+            }
 
         }catch (Exception e)
         {
@@ -645,6 +706,7 @@ public class Tab_Attachment extends Activity {
 
     }
 
+
     public void triggerImageUpload() {
        String response= makeHTTPCall();
 
@@ -653,7 +715,7 @@ public class Tab_Attachment extends Activity {
 
     // Make Http call to upload Image to Java server
     public String makeHTTPCall() {
-        prgDialog.setMessage("storing in server");
+        prgDialog.setMessage("Storing on Server");
         AsyncHttpClient client = new AsyncHttpClient();
 
 
@@ -716,6 +778,7 @@ public class Tab_Attachment extends Activity {
                         strResponse=String.valueOf(statusCode);
                     }
                 });
+        AttachmentFilesArray.clear();
         return  strResponse;
     }
 

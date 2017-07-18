@@ -98,6 +98,7 @@ public class Tab_Details extends Activity {
                 tvKeyId.setText("Id");
             }*/
 
+            String dt_con_stage = null, dt_act_stage = null,dt_lati = null, dt_longi = null, dt_name = null;
           try {
                 DbConncetion dbConncetion = new DbConncetion(context);
                 conn = dbConncetion.getConnection();
@@ -106,8 +107,9 @@ public class Tab_Details extends Activity {
                     String query_keyId = "select * from vw_att_details_site where site_id=\'" + key + "\'";
                     resultSet = statement.executeQuery(query_keyId);
 
-                    String dt_con_stage = null, dt_act_stage = null,dt_lati = null, dt_longi = null, dt_name = null;
+
                     if (resultSet.next()) {
+                        resultSet.first();
                         dt_act_stage = resultSet.getString("activation_stage");
                         dt_con_stage = resultSet.getString("construction_stage");
                         dt_lati      = resultSet.getString("site_latitude");

@@ -37,6 +37,7 @@ import android.support.v7.app.AppCompatCallback;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.View;
@@ -55,6 +56,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.google.android.gms.cast.framework.zzn;
 import com.google.android.gms.common.ConnectionResult;
@@ -122,14 +124,17 @@ public class GoogleMapsActivity extends AppCompatActivity
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS=101;
 
+    SharedPreferences sharedpreferences;
+    public static final String preference = "FiberStarPreferences";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_google_maps);
 
-       Toolbar toolbar=(Toolbar)findViewById(R.id.toolbar);
-       setSupportActionBar(toolbar);
+        Toolbar toolbar=(Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
 
         context = this;
@@ -154,8 +159,10 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
         }
 
+        sharedpreferences = getSharedPreferences(preference, Context.MODE_PRIVATE);
         Bundle bundle = getIntent().getExtras();
         user = bundle.getString("user");
+//        user=sharedpreferences.getString("Name", "");
 
         btnOpenPopup = (Button) findViewById(R.id.openpopup);
         btnViewNetworkIds=(Button)findViewById(R.id.btViewNetworkId);
@@ -202,7 +209,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
             }
         });
-
+        //Show entities within radios as dropdown list
         btnViewNetworkIds.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -222,7 +229,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     alert11.show();
                 } else {
                     radius=50;
-                    getEntityInfo();
+                    // getEntityInfo();
                     if (entity_list.size() > 0) {
                         Intent network_id = new Intent(GoogleMapsActivity.this, Network_id_selection.class);
                         network_id.putExtra("user", user);
@@ -232,6 +239,20 @@ public class GoogleMapsActivity extends AppCompatActivity
                         network_id.putExtra("selected_long", sele_long);
                         network_id.putStringArrayListExtra("entity_list", (ArrayList<String>) entity_list);
                         startActivity(network_id);
+                    }
+                    else
+                    {
+                        getEntityInfo();
+                        if (entity_list.size() > 0) {
+                            Intent network_id = new Intent(GoogleMapsActivity.this, Network_id_selection.class);
+                            network_id.putExtra("user", user);
+                            network_id.putExtra("user_role", user_role);
+                            network_id.putExtra("radius", radius);
+                            network_id.putExtra("selected_lat", sele_lat);
+                            network_id.putExtra("selected_long", sele_long);
+                            network_id.putStringArrayListExtra("entity_list", (ArrayList<String>) entity_list);
+                            startActivity(network_id);
+                        }
                     }
                 }
             }
@@ -276,6 +297,12 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     }
 
+    public void setSupportActionBar(@Nullable Toolbar toolbar) {
+        getDelegate().setSupportActionBar(toolbar);
+    }
+
+    //Kishor
+    //Adding red color radius circle
     private void addCircleToMap(int radius,double lat,double lng) {
 
         // circle settings
@@ -300,17 +327,17 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     }
 
+    //Kishor
     //Search Location by name in google Map
     public void SearchLocation(String location) {
-
-//        EditText etSearch=(EditText) findViewById(R.id.etSearch);
 
         String Location=location;//etSearch.getText().toString();
         List<android.location.Address> addressList = null;
 
         if(Location != null || !Location.equals(""))
         {
-            Geocoder geocoder=new Geocoder(this);
+//            Geocoder geocoder=new Geocoder(this);
+            Geocoder geocoder=new Geocoder(this, Locale.getDefault());
             try
             {
                 addressList=geocoder.getFromLocationName(Location,1);
@@ -329,7 +356,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(19));
 
-                addCircleToMap(Integer.parseInt(userInput.getText().toString()),address.getLatitude(),address.getLongitude());
+//                addCircleToMap(Integer.parseInt(userInput.getText().toString()),address.getLatitude(),address.getLongitude());
             }
             catch (Exception e)
             {
@@ -340,6 +367,8 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     }
 
+    //Kishor
+    //Getting all the entity within radius
     public void getEntityInfo() {
 
         addCircleToMap(radius,sele_lat,sele_long);
@@ -349,11 +378,24 @@ public class GoogleMapsActivity extends AppCompatActivity
         DbConncetion dbConncetion = new DbConncetion(context);
         conn = dbConncetion.getConnection();
 
+
         if (conn != null) {
             try {
+
+                Double ExLat=marker.getPosition().latitude;
+                Double ExLong=marker.getPosition().longitude;
+
                 statement = conn.createStatement();
 
-                String query = "select * from vw_att_details_site";
+                //Queries changes for improving performance of application /* by Kishor 12072017*/
+                //Queries get the distance from search location to each co-ordinates and check for the distance, if distance is less then 5KM then returns the data
+
+
+//                String query = "select * from vw_att_details_site";
+//                String query = "SELECT *  FROM vw_att_details_site WHERE ST_DistanceSphere("+ExLat+","+ExLong+") <= 5.0 * 1609.34";
+//                String query = "SELECT * FROM vw_att_details_site WHERE ST_Distance_Sphere(site_id, ST_MakePoint("+ExLat+","+ExLong+")) <= 0.5 * 1609.34";
+//                String query = "SELECT site_id,site_latitude,site_longitude  FROM vw_att_details_site WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772";
+                String query = "SELECT site_id,site_latitude,site_longitude , ACOS(sin(site_latitude::decimal ) * sin("+ExLat+") + cos( site_latitude::decimal  ) * cos("+ExLat+" ) * cos( (site_longitude::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_site WHERE ACOS( sin( site_latitude::decimal  ) * sin("+ExLat+") + COS( site_latitude::decimal  ) * COS("+ExLat+") * COS( site_longitude::decimal  - "+ExLong+" ) ) * 6380 <= 5";
 
                 ResultSet resultSet = statement.executeQuery(query);
 
@@ -372,7 +414,10 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
 
                 //for adding customer entity latLongs
-                resultSet = statement.executeQuery("select * from vw_att_details_customer");
+//                resultSet = statement.executeQuery("select * from vw_att_details_customer");
+//                resultSet = statement.executeQuery("select customer_id,customer_lat,customer_long from vw_att_details_customer  WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                resultSet = statement.executeQuery("SELECT customer_id,customer_lat,customer_long , ACOS(sin(customer_lat::decimal ) * sin("+ExLat+") + cos( customer_lat::decimal  ) * cos("+ExLat+" ) * cos( (customer_long::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_customer WHERE ACOS( sin( customer_lat::decimal  ) * sin("+ExLat+") + COS( customer_lat::decimal  ) * COS("+ExLat+") * COS( customer_long::decimal  - "+ExLong+" ) ) * 6380 <= 5");
+
                 while (resultSet.next()) {
                     String entity_type = "CUST:";
                     String customer_id = resultSet.getString("customer_id");
@@ -386,7 +431,9 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
 
                 //for adding pop entity latLongs
-                resultSet = statement.executeQuery("select * from vw_att_details_pop");
+//                resultSet = statement.executeQuery("select * from vw_att_details_pop");
+//                resultSet = statement.executeQuery("select pop_id,pop_latitude,pop_longitude from vw_att_details_pop WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                resultSet = statement.executeQuery("SELECT pop_id,pop_latitude,pop_longitude, ACOS(sin(pop_latitude::decimal ) * sin("+ExLat+") + cos( pop_latitude::decimal  ) * cos("+ExLat+" ) * cos( (pop_longitude::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_pop WHERE ACOS( sin( pop_latitude::decimal  ) * sin("+ExLat+") + COS( pop_latitude::decimal  ) * COS("+ExLat+") * COS(pop_longitude::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                 while (resultSet.next()) {
                     String entity_type = "POP:";
                     String pop_id = resultSet.getString("pop_id");
@@ -400,7 +447,9 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
 
                 //for adding chamber entity latLongs
-                resultSet = statement.executeQuery("select * from vw_att_details_chamber");
+//                resultSet = statement.executeQuery("select * from vw_att_details_chamber");
+//                resultSet = statement.executeQuery("select chamber_id,latitude,longitude from vw_att_details_chamber WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                resultSet = statement.executeQuery("SELECT chamber_id,latitude,longitude, ACOS(sin(latitude::decimal ) * sin("+ExLat+") + cos( latitude::decimal  ) * cos("+ExLat+" ) * cos( (longitude ::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_chamber WHERE ACOS( sin( latitude::decimal  ) * sin("+ExLat+") + COS( latitude::decimal  ) * COS("+ExLat+") * COS(longitude ::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                 while (resultSet.next()) {
                     String entity_type = "CHMBR:";
                     String chamber_id = resultSet.getString("chamber_id");
@@ -414,7 +463,10 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
 
                 //for adding chamber entity latLongs
-                resultSet = statement.executeQuery("select * from vw_att_details_pole");
+//                resultSet = statement.executeQuery("select * from vw_att_details_pole");
+//                resultSet = statement.executeQuery("select pole_id,latitude,longitude from vw_att_details_pole WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+//                resultSet = statement.executeQuery("SELECT pole_id,latitude,longitude , ACOS(sin(latitude::decimal ) * sin("+ExLat+") + cos( latitude::decimal  ) * cos("+ExLat+" ) * cos( (longitude::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_pole WHERE ACOS( sin( latitude::decimal  ) * sin("+ExLat+") + COS( latitude::decimal  ) * COS("+ExLat+") * COS( longitude::decimal  - "+ExLong+" ) ) * 6380 <= 10");
+                resultSet = statement.executeQuery("SELECT pole_id,latitude,longitude , ACOS(sin(latitude::decimal ) * sin("+ExLat+") + cos( latitude::decimal  ) * cos("+ExLat+" ) * cos( (longitude::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_pole WHERE ACOS( sin( latitude::decimal  ) * sin("+ExLat+") + COS( latitude::decimal  ) * COS("+ExLat+") * COS( longitude::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                 while (resultSet.next()) {
                     String entity_type = "POLE:";
                     String pole_id = resultSet.getString("pole_id");
@@ -433,48 +485,54 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                 //for adding splice closure entity latLongs
                 if (conn != null) {
-                    resultSet = statement.executeQuery("select * from vw_att_details_spliceclosure");
+//                    resultSet = statement.executeQuery("select * from vw_att_details_spliceclosure");
+//                    resultSet = statement.executeQuery("select spc.spliceclosure_id,spc.chamber_id,chmr.latitude,chmr.longitude from vw_att_details_spliceclosure spc JOIN vw_att_details_chamber chmr ON chmr.chamber_id=spc.chamber_id WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                    resultSet = statement.executeQuery("SELECT spc.spliceclosure_id,spc.chamber_id,chmr.latitude,chmr.longitude, ACOS(sin(chmr.latitude::decimal ) * sin("+ExLat+") + cos( chmr.latitude::decimal  ) * cos("+ExLat+" ) * cos( (chmr.longitude::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_spliceclosure spc JOIN vw_att_details_chamber chmr ON chmr.chamber_id=spc.chamber_id WHERE ACOS( sin( chmr.latitude::decimal  ) * sin("+ExLat+") + COS( chmr.latitude::decimal  ) * COS("+ExLat+") * COS(chmr.longitude::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                     while (resultSet.next()) {
                         String chamber_system_id = resultSet.getString("spliceclosure_id");
                         String chamber_id = resultSet.getString("chamber_id");
                         Statement stmt = conn.createStatement();
-                        ResultSet resultSet1 = stmt.executeQuery("select * from vw_att_details_chamber where chamber_id = \'" + chamber_id + "\'");
+//                        ResultSet resultSet1 = stmt.executeQuery("select latitude,longitude from vw_att_details_chamber where chamber_id = \'" + chamber_id + "\'");
 
-                        while (resultSet1.next()) {
-                            String entity_type = "SPCL:";
-                            String chamber_lat = resultSet1.getString("latitude");
-                            String chamber_long = resultSet1.getString("longitude");
+//                        while (resultSet1.next()) {
+                        String entity_type = "SPCL:";
+                        String chamber_lat = resultSet.getString("latitude");
+                        String chamber_long = resultSet.getString("longitude");
 
-                            if (chamber_id != null && chamber_lat != null && chamber_long != null) {
-                                String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
-                                database_siteList.add(dataBase_latLong);
-                            }
+                        if (chamber_id != null && chamber_lat != null && chamber_long != null) {
+                            String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
+                            database_siteList.add(dataBase_latLong);
                         }
+//                        }
                     }
                 }
 
                 if (conn != null) {
-                    resultSet = statement.executeQuery("select * from vw_att_details_spliceclosure");
+//                    resultSet = statement.executeQuery("select * from vw_att_details_spliceclosure");
+//                    resultSet = statement.executeQuery("select spc.spliceclosure_id,spc.chamber_id,pole.latitude,pole.longitude from vw_att_details_spliceclosure spc JOIN vw_att_details_pole pole ON pole.pole_id=spc.chamber_id WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                    resultSet = statement.executeQuery("SELECT spc.spliceclosure_id,spc.chamber_id,pole.latitude,pole.longitude , ACOS(sin(pole.latitude::decimal ) * sin("+ExLat+") + cos( pole.latitude::decimal  ) * cos("+ExLat+" ) * cos( (pole.longitude::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM vw_att_details_spliceclosure spc JOIN vw_att_details_pole pole ON pole.pole_id=spc.chamber_id WHERE ACOS( sin(pole.latitude::decimal  ) * sin("+ExLat+") + COS(pole.latitude::decimal  ) * COS("+ExLat+") * COS( pole.longitude::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                     while (resultSet.next()) {
                         String chamber_system_id = resultSet.getString("spliceclosure_id");
                         String chamber_id = resultSet.getString("chamber_id");
                         Statement stmt = conn.createStatement();
-                        ResultSet resultSet2 = stmt.executeQuery("select * from vw_att_details_pole where pole_id = \'" + chamber_id + "\'");
-                        while (resultSet2.next()) {
-                            String entity_type = "SPCL:";
-                            String chamber_lat = resultSet2.getString("latitude");
-                            String chamber_long = resultSet2.getString("longitude");
+//                        ResultSet resultSet2 = stmt.executeQuery("select latitude,longitude from vw_att_details_pole where pole_id = \'" + chamber_id + "\'");
+//                        while (resultSet2.next()) {
+                        String entity_type = "SPCL:";
+                        String chamber_lat = resultSet.getString("latitude");
+                        String chamber_long = resultSet.getString("longitude");
 
-                            if (chamber_id != null && chamber_lat != null && chamber_long != null) {
-                                String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
-                                database_siteList.add(dataBase_latLong);
-                            }
+                        if (chamber_id != null && chamber_lat != null && chamber_long != null) {
+                            String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
+                            database_siteList.add(dataBase_latLong);
                         }
+//                        }
                     }
                 }
 
                 //for adding odf entity latLongs
-                resultSet = statement.executeQuery("select * from vw_att_details_odf");
+//                resultSet = statement.executeQuery("select * from vw_att_details_odf");
+//                resultSet = statement.executeQuery("select odf_id,odf_lat,odf_long from vw_att_details_odf WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                resultSet = statement.executeQuery("SELECT odf_id,odf_lat,odf_long , ACOS(sin(odf_lat::decimal ) * sin("+ExLat+") + cos( odf_lat::decimal  ) * cos("+ExLat+" ) * cos( (odf_long::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_odf WHERE ACOS( sin( odf_lat::decimal  ) * sin("+ExLat+") + COS( odf_lat::decimal  ) * COS("+ExLat+") * COS(odf_long::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                 while (resultSet.next()) {
                     String entity_type = "ODF:";
                     String odf_id = resultSet.getString("odf_id");
@@ -487,7 +545,8 @@ public class GoogleMapsActivity extends AppCompatActivity
                     }
                 }
 
-                resultSet = statement.executeQuery("SELECT *,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_cable");
+//                resultSet = statement.executeQuery("SELECT *,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_cable");
+                resultSet = statement.executeQuery("SELECT cable_id,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_cable ");
                 while (resultSet.next()) {
                     String entity_type = "CABLE:";
                     String latLongs = resultSet.getString("venkat");
@@ -512,7 +571,8 @@ public class GoogleMapsActivity extends AppCompatActivity
                     }
                 }
 
-                resultSet = statement.executeQuery("SELECT *,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_circuit");
+//                resultSet = statement.executeQuery("SELECT *,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_circuit");
+                resultSet = statement.executeQuery("SELECT circuit_id,ST_AsText(sp_geometry) as venkat  FROM vw_att_details_circuit");
                 while (resultSet.next()) {
                     String entity_type = "CIRCUIT:";
                     String latLongs = resultSet.getString("venkat");
@@ -538,50 +598,57 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
 
                 if (conn != null) {
-                    resultSet = statement.executeQuery("select * from vw_att_details_splitter");
+//                    resultSet = statement.executeQuery("select * from vw_att_details_splitter");
+//                    resultSet = statement.executeQuery("select splr.splitter_id,splr.parent_id,chmr.latitude,chmr.longitude from vw_att_details_splitter splr JOIN  vw_att_details_chamber chmr ON chmr.chamber_id = splr.parent_id  WHERE  acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                    resultSet = statement.executeQuery("SELECT splr.splitter_id,splr.parent_id,chmr.latitude,chmr.longitude, ACOS(sin(chmr.latitude::decimal ) * sin("+ExLat+") + cos(chmr.latitude::decimal  ) * cos("+ExLat+" ) * cos( (chmr.longitude::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_splitter splr JOIN  vw_att_details_chamber chmr ON chmr.chamber_id = splr.parent_id  WHERE ACOS( sin(chmr.latitude::decimal  ) * sin("+ExLat+") + COS(chmr.latitude::decimal  ) * COS("+ExLat+") * COS(chmr.longitude::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                     while (resultSet.next()) {
                         String chamber_system_id = resultSet.getString("splitter_id");
                         String chamber_id = resultSet.getString("parent_id");
                         Statement stmt = conn.createStatement();
-                        ResultSet resultSet1 = stmt.executeQuery("select * from vw_att_details_chamber where chamber_id = \'" + chamber_id + "\'");
+//                        ResultSet resultSet1 = stmt.executeQuery("select latitude,longitude from vw_att_details_chamber where chamber_id = \'" + chamber_id + "\'");
+//                        ResultSet resultSet1 = stmt.executeQuery("SELECT *  FROM vw_att_details_chamber WHERE ST_Distance_Sphere(\"SP_GEOMETRY\", ST_MakePoint(120.667425,15.03404)) <= 0.5 * 1609.34 where chamber_id = \'" + chamber_id + "\'");
 
-                        while (resultSet1.next()) {
-                            String entity_type = "SPLITTER:";
-                            String chamber_lat = resultSet1.getString("latitude");
-                            String chamber_long = resultSet1.getString("longitude");
+//                        while (resultSet1.next()) {
+                        String entity_type = "SPLITTER:";
+                        String chamber_lat = resultSet.getString("latitude");
+                        String chamber_long = resultSet.getString("longitude");
 
-                            if (chamber_id != null && chamber_lat != null && chamber_long != null) {
-                                String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
-                                System.out.println("dataBase_latLong from chamber: " + dataBase_latLong);
-                                database_siteList.add(dataBase_latLong);
-                            }
+                        if (chamber_id != null && chamber_lat != null && chamber_long != null) {
+                            String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
+                            System.out.println("dataBase_latLong from chamber: " + dataBase_latLong);
+                            database_siteList.add(dataBase_latLong);
                         }
+//                        }
                     }
                 }
 
                 if (conn != null) {
-                    resultSet = statement.executeQuery("select * from vw_att_details_splitter");
+//                    resultSet = statement.executeQuery("select * from vw_att_details_splitter");
+//                    resultSet = statement.executeQuery("select splr.splitter_id,splr.parent_id,pole.latitude,pole.longitude from vw_att_details_splitter splr JOIN vw_att_details_pole pole ON pole.pole_id = splr.parent_id WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                    resultSet = statement.executeQuery("SELECT splr.splitter_id,splr.parent_id,pole.latitude,pole.longitude , ACOS(sin(pole.latitude::decimal ) * sin("+ExLat+") + cos(pole.latitude::decimal  ) * cos("+ExLat+" ) * cos( (pole.longitude ::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM   vw_att_details_splitter splr JOIN vw_att_details_pole pole ON pole.pole_id = splr.parent_id WHERE ACOS( sin(pole.latitude::decimal  ) * sin("+ExLat+") + COS(pole.latitude::decimal  ) * COS("+ExLat+") * COS(pole.longitude ::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                     while (resultSet.next()) {
                         String chamber_system_id = resultSet.getString("splitter_id");
                         String chamber_id = resultSet.getString("parent_id");
                         Statement stmt = conn.createStatement();
-                        ResultSet resultSet2 = stmt.executeQuery("select * from vw_att_details_pole where pole_id = \'" + chamber_id + "\'");
-                        while (resultSet2.next()) {
-                            String entity_type = "SPLITTER:";
-                            String chamber_lat = resultSet2.getString("latitude");
-                            String chamber_long = resultSet2.getString("longitude");
+//                        ResultSet resultSet2 = stmt.executeQuery("select latitude,longitude from vw_att_details_pole where pole_id = \'" + chamber_id + "\'");
+//                        while (resultSet2.next()) {
+                        String entity_type = "SPLITTER:";
+                        String chamber_lat = resultSet.getString("latitude");
+                        String chamber_long = resultSet.getString("longitude");
 
-                            if (chamber_id != null && chamber_lat != null && chamber_long != null) {
-                                String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
-                                System.out.println("dataBase_latLong from pole: " + dataBase_latLong);
-                                database_siteList.add(dataBase_latLong);
-                            }
+                        if (chamber_id != null && chamber_lat != null && chamber_long != null) {
+                            String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
+                            System.out.println("dataBase_latLong from pole: " + dataBase_latLong);
+                            database_siteList.add(dataBase_latLong);
                         }
+//                        }
                     }
                 }
 
                 //for adding Logical Link entity latLongs
-                resultSet = statement.executeQuery("select * from vw_att_details_link");
+//                resultSet = statement.executeQuery("select * from vw_att_details_link");
+//                resultSet = statement.executeQuery("select link_id,site_lat,site_lng from vw_att_details_link WHERE acos(sin(1.3963) * sin("+ExLat+") + cos(1.3963) * cos("+ExLat+") * cos("+ExLong+" - (-0.6981))) * 6371 <= 12772");
+                resultSet = statement.executeQuery("SELECT link_id,site_lat,site_lng , ACOS(sin(site_lat::decimal ) * sin("+ExLat+") + cos( site_lat::decimal  ) * cos("+ExLat+" ) * cos( (site_lng::decimal)  -  "+ExLong+"  ) ) * 6380 AS distance FROM  vw_att_details_link WHERE ACOS( sin( site_lat::decimal  ) * sin("+ExLat+") + COS( site_lat::decimal  ) * COS("+ExLat+") * COS(site_lng::decimal  - "+ExLong+" ) ) * 6380 <= 5");
                 while (resultSet.next()) {
                     String entity_type = "LGLK:";
                     String lglink_id = resultSet.getString("link_id");
@@ -618,6 +685,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     LatLng southwest = SphericalUtil.computeOffset(marker.getPosition(), radius * Math.sqrt(2.0), 225);
                     LatLng northeast = SphericalUtil.computeOffset(marker.getPosition(), radius * Math.sqrt(2.0), 45);
                     latLngBounds = new LatLngBounds(southwest, northeast);
+
 
                     if (latLngBounds.contains(latLong)) {
                         System.out.println("count: " + count + " key Id: " + key+" type: "+type);
@@ -658,33 +726,6 @@ public class GoogleMapsActivity extends AppCompatActivity
                             Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.splitter);
                             marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
                         }
-
-
-
-                        /*else if(database_siteList.get(i).contains("CABLE")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.cable);
-                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
-                        }
-
-
-                        else if(database_siteList.get(i).contains("CIRCUIT")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_circute);
-                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
-                        }
-
-                        else if(database_siteList.get(i).contains("LGLK")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.logicallink);
-                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
-                        }
-
-                        else if(database_siteList.get(i).contains("SITE")){
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.site);
-                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
-                        }
-                        else {
-                            Bitmap bitmap = getBitmap(getApplicationContext(), R.drawable.ic_circute);
-                            marker=mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(bitmap)).position(latLong).draggable(true));
-                        }*/
                     }
                 }
             }
@@ -707,6 +748,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
     }
 
+    //Kishor
     //displays Alert Dailog for radius in google map
     public void getRadius() {
 
@@ -809,11 +851,21 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                                         AlertDialog alert11 = builder1.create();
                                         alert11.show();
-
                                     }
                                     else
                                     {
+                                        final ProgressDialog pd=new ProgressDialog(GoogleMapsActivity.this);
+                                        pd.setMessage("Please Wait for data Loading...");
+                                        pd.show();
+
+//                                        Runnable runnable = new Runnable() {
+//                                            @Override
+//                                            public void run() {
                                         getEntityInfo();
+                                        pd.dismiss();
+//                                            }
+//                                        };
+//                                        new Thread(runnable).start();
                                     }
                                 }
                             }
@@ -870,7 +922,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        final ProgressDialog loading = ProgressDialog.show(this, "Loading...", "Please wait...", false, false);
+        final ProgressDialog loading = ProgressDialog.show(this, "Map Loading...", "Please wait...", false, false);
 
         mMap = googleMap;
 
@@ -1129,14 +1181,14 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
     }
 
-//    @Override
+    //    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
 //        super.onCreateOptionsMenu(menu,inflater);
         getMenuInflater().inflate(R.menu.google_maps, menu);
 
         MenuItem myActionMenuItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) myActionMenuItem.getActionView();//findViewById(R.id.searchView);
+        SearchView searchView = (SearchView) myActionMenuItem.getActionView(); //findViewById(R.id.searchView);
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override

@@ -16,6 +16,7 @@ import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.design.widget.TabLayout;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -34,10 +35,13 @@ import com.nguyenhoanglam.imagepicker.activity.ImagePicker;
 import com.nguyenhoanglam.imagepicker.activity.ImagePickerActivity;
 import com.nguyenhoanglam.imagepicker.model.Image;
 
+import org.apache.http.Header;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
@@ -63,7 +67,7 @@ public class Tab_Photo extends Activity {
     GridView gridView;
     TextView image_info;
     Bitmap bitmap;
-    ProgressDialog prgDialog;
+    private ProgressDialog prgDialog;
 
     ArrayList<Bitmap> bitmap_array ;
     String imgDecodableString;
@@ -114,7 +118,7 @@ public class Tab_Photo extends Activity {
         image_info  = (TextView) findViewById(R.id.images);
 
 
-        prgDialog = new ProgressDialog(this);
+        prgDialog = new ProgressDialog(Tab_Photo.this);
         // Set Cancelable as False
         prgDialog.setCancelable(false);
 
@@ -290,9 +294,8 @@ public class Tab_Photo extends Activity {
         }
     }
 
+    //Get images from database
     public void getImages() {
-
-
         String image = null;
         try {
             if (connection == null) {
@@ -312,7 +315,10 @@ public class Tab_Photo extends Activity {
                 URL url = new URL(image1);
                 Bitmap bmp1 = null;
                 try {
-                    bmp1 = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                    InputStream is=url.openConnection().getInputStream();
+                    BitmapFactory.Options options=new BitmapFactory.Options();
+                    options.inSampleSize = 4;
+                    bmp1 = BitmapFactory.decodeStream(is,null,options);
                 } catch (FileNotFoundException fne) {
                     fne.printStackTrace();
                 }
@@ -329,7 +335,7 @@ public class Tab_Photo extends Activity {
             image_scScrollView.setVisibility(View.VISIBLE);
 
 
-            adapter =new ImageAdapter(Tab_Photo.this,images_list);
+            adapter =new ImageAdapter(Tab_Photo.this,bitmap_array);
 
             gridView.setAdapter(adapter);
 
@@ -366,9 +372,20 @@ public class Tab_Photo extends Activity {
                                         PreparedStatement pstmt = connection.prepareStatement(DeleteQuery);
                                         int i = pstmt.executeUpdate();
 
+                                        if(i>0)
+                                        {
+                                            images_list.remove(deletePosition);
+                                            bitmap_array.remove(deletePosition);
+                                            adapter =new ImageAdapter(Tab_Photo.this,bitmap_array);
+                                            gridView.setAdapter(adapter);
+                                        }
+                                        else
+                                        {
+                                            Toast.makeText(Tab_Photo.this,"Please Try againg.",Toast.LENGTH_SHORT).show();
+                                        }
                                         //Refreshing gridview
-                                        initArraylist();
-                                        getImages();
+//                                        initArraylist();
+//                                        getImages();
                                     }catch (Exception e)
                                     {
                                         e.printStackTrace();
@@ -481,10 +498,10 @@ public class Tab_Photo extends Activity {
 
 
                                 uploadImage();
-                                initArraylist();
-                                getImages();
+//                                initArraylist();
+//                                getImages();
 
-                                prgDialog.hide();
+//                                prgDialog.hide();
 
                             } else {
                                 AlertDialog.Builder builder1 = new AlertDialog.Builder(Tab_Photo.this);
@@ -503,7 +520,6 @@ public class Tab_Photo extends Activity {
 
                         }
                     }
-
 
                 }
                 else{
@@ -529,6 +545,8 @@ public class Tab_Photo extends Activity {
         }
 
         finally {
+            initArraylist();
+            getImages();
             if(connection!=null){
                 try {
                     connection.close();
@@ -572,7 +590,47 @@ public class Tab_Photo extends Activity {
 //        return "";
 //    }
 
+
+
+    public static int calculateInSampleSize(BitmapFactory.Options options,
+                                            int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and
+            // keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        return inSampleSize;
+    }
+
+    public static Bitmap decodeSampledBitmapFromResource(String strPath,int reqWidth, int reqHeight) {
+
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(strPath, options);
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options,reqWidth,
+                reqHeight);
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeFile(strPath, options);
+    }
+
+
     // AsyncTask - To convert Image to String
+    //Asyanc task is not workied properly for the multiple image upload.
     public void encodeImagetoString() {
        /* new AsyncTask<Void, Void, String>() {
 
@@ -584,7 +642,7 @@ public class Tab_Photo extends Activity {
             protected String doInBackground(Void... params) {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inSampleSize = 3;
-                bitmap = BitmapFactory.decodeFile(imgDecodableString,
+                bitmap = BitmapFactory.decodeFile(imgDecodableString,aaaaf
                         options);
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 // Must compress the Image to reduce image size to make upload easy
@@ -608,7 +666,8 @@ public class Tab_Photo extends Activity {
 //        prgDialog.setMessage("Please wait... Converting Images");
 //       prgDialog.show();
                     BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inSampleSize = 3;
+                    options.inSampleSize = 4;
+                 bitmap =decodeSampledBitmapFromResource(imgDecodableString,100,100);
                     bitmap = BitmapFactory.decodeFile(imgDecodableString,
                             options);
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -648,13 +707,14 @@ public class Tab_Photo extends Activity {
                     // When the response returned by REST has Http
                     // response code '200'
 
-                    //@Override
+                    @Override
                     public void onSuccess(String response) {
                         // Hide Progress Dialog
                         prgDialog.hide();
 //                        prgDialog.dismiss();
 
-                        Toast.makeText(getApplicationContext(), response,Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Uploading...",Toast.LENGTH_LONG).show();
+                        Log.d("Response",response);
                     }
 
                     // When the response returned by REST has Http
@@ -704,16 +764,17 @@ public class Tab_Photo extends Activity {
     //Listview adapter to display images
     public class ImageAdapter extends BaseAdapter {
         private Context context;
-        private ArrayList<String> filePaths = new ArrayList<>();
+        private ArrayList<Bitmap> filePaths = new ArrayList<>();
 
         public ImageAdapter(Context c,ArrayList filepath)
         {
             context = c;
             //String serverPath = "http://172.16.28.39/image/";
-            for(int i=0;i<filepath.size();i++){
+            /*for(int i=0;i<filepath.size();i++){
                 String path = serverPath + filepath.get(i);
                 filePaths.add(path);
-            }
+            }*/
+            this.filePaths=filepath;
         }
         //---returns the number of images---
         public int getCount() {
@@ -738,18 +799,17 @@ public class Tab_Photo extends Activity {
                 imageView = new ImageView(context);
                 imageView.setLayoutParams(new GridView.LayoutParams(185, 185));
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                imageView.setBackgroundColor(getColor(android.R.color.darker_gray));
                 imageView.setPadding(5, 5, 5, 5);
                 URL url;
                 try{
-                    url = new URL(filePaths.get(position));
-                    Bitmap bmp1 =  BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                    imageView.setImageBitmap(bmp1);
+//                    url = new URL(filePaths.get(position));
+//                    Bitmap bmp1 =  BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                    imageView.setImageBitmap(filePaths.get(position));
                 }
-                catch(IOException ioe){
-                    ioe.printStackTrace();
+                catch(Exception e){
+                    e.printStackTrace();
                 }
-
-
             }
             else {
                 imageView = (ImageView) convertView;
