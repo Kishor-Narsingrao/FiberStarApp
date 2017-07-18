@@ -329,6 +329,7 @@ public class Tab_Photo extends Activity {
             e.printStackTrace();
         }
 
+
         if(bitmap_array.size()>0) {
             image_info.setVisibility(View.GONE);
             ScrollView image_scScrollView = (ScrollView) findViewById(R.id.imageScroll);
