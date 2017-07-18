@@ -293,7 +293,6 @@ public class Tab_Photo extends Activity {
             }
         }
     }
-
     //Get images from database
     public void getImages() {
         String image = null;
