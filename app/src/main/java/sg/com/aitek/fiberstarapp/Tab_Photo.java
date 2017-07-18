@@ -384,9 +384,7 @@ public class Tab_Photo extends Activity {
                                         {
                                             Toast.makeText(Tab_Photo.this,"Please Try againg.",Toast.LENGTH_SHORT).show();
                                         }
-                                        //Refreshing gridview
-//                                        initArraylist();
-//                                        getImages();
+
                                     }catch (Exception e)
                                     {
                                         e.printStackTrace();
