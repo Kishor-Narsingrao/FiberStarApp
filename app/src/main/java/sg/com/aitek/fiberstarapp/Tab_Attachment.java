@@ -24,6 +24,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -562,6 +563,8 @@ public class Tab_Attachment extends Activity {
     public void uploadImage(View v) {
 
         if(AttachmentFilesArray.size()<=attchmentFileArraySize && AttachmentFilesArray.size() !=0) {
+            tvSelectedFileName.setText("");
+            strFileName="";
 
             for (int i=0;i<AttachmentFilesArray.size();i++) {
 
@@ -602,13 +605,16 @@ public class Tab_Attachment extends Activity {
                             Toast.LENGTH_LONG).show();
                 }
             }
-            AttachmentFilesArray.clear();
-            tvSelectedFileName.setText("");
+//            AttachmentFilesArray.clear();
+
 //            Toast.makeText(getApplicationContext(),"Uploaded Sucessfully.",Toast.LENGTH_LONG).show();
         }
         else {
             Toast.makeText(getApplicationContext(),"You must select File from storage to upload",Toast.LENGTH_LONG).show();
         }
+        AttachmentFilesArray.clear();
+        String size=String.valueOf(AttachmentFilesArray.size());
+        Log.d("AttachmentFiles size:",size);
     }
 
 
@@ -778,7 +784,6 @@ public class Tab_Attachment extends Activity {
                         strResponse=String.valueOf(statusCode);
                     }
                 });
-        AttachmentFilesArray.clear();
         return  strResponse;
     }
 
