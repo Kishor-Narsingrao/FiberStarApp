@@ -126,6 +126,7 @@ public class Tab_Details extends Activity {
                         dt_name = resultSet.getString("spliceclosure_name");
                     }
 
+
                     query_keyId = "select * from att_details_odf where odf_id=\'" + key + "\'";
                     resultSet = statement.executeQuery(query_keyId);
 
