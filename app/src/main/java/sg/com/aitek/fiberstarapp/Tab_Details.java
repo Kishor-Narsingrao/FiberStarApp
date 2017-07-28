@@ -50,53 +50,7 @@ public class Tab_Details extends Activity {
             String replace= key.substring(0,key.indexOf(':')+1);
             key          = key.replaceFirst(replace,"");
 
-          /*  if(key.contains("CUST")||key.contains("cust"))
-            {
-                tvKeyId.setText("Customer Id");
-            }
-            else if(key.contains("POP")||key.contains("pop"))
-            {
-                tvKeyId.setText("PoP Id");
-            }
-            else if(key.contains("CHMBR")||key.contains("chmbr"))
-            {
-                tvKeyId.setText("Chamber Id");
-            }
-            else if(key.contains("POLE")||key.contains("pole"))
-            {
-                tvKeyId.setText("Pole Id");
-            }
-            else if(key.contains("SPC")||key.contains("spc"))
-            {
-                tvKeyId.setText("Splice Closure Id");
-            }
-            else if(key.contains("ODF")||key.contains("odf"))
-            {
-                tvKeyId.setText("ODF Id");
-            }
-            else if(key.contains("SPLT")||key.contains("splt"))
-            {
-                tvKeyId.setText("Splitter Id");
-            }
-            else if(key.contains("CABL")||key.contains("cabl"))
-            {
-                tvKeyId.setText("Cable Id");
-            }
-            else if(key.contains("LINK")||key.contains("link"))
-            {
-                tvKeyId.setText("Logical Link Id");
-            }
-            else if(key.contains("SITE")||key.contains("site"))
-            {
-                tvKeyId.setText("Site Id");
-            }
-            else if(key.contains("CIRCUIT")||key.contains("circuit"))
-            {
-                tvKeyId.setText("Circuit Id");
-            }
-            else{
-                tvKeyId.setText("Id");
-            }*/
+
 
             String dt_con_stage = null, dt_act_stage = null,dt_lati = null, dt_longi = null, dt_name = null;
           try {
@@ -104,24 +58,130 @@ public class Tab_Details extends Activity {
                 conn = dbConncetion.getConnection();
                 statement = conn.createStatement();
                 if (conn != null) {
-                    String query_keyId = "select * from vw_att_details_site where site_id=\'" + key + "\'";
+                    String query_keyId = "select * from att_details_site where site_id=\'" + key + "\'";
                     resultSet = statement.executeQuery(query_keyId);
 
-
                     if (resultSet.next()) {
-                        resultSet.first();
                         dt_act_stage = resultSet.getString("activation_stage");
                         dt_con_stage = resultSet.getString("construction_stage");
                         dt_lati      = resultSet.getString("site_latitude");
                         dt_longi     = resultSet.getString("site_longitude");
                         dt_name      = resultSet.getString("site_name");
 
-                       System.out.println("dt_act_stage: "+dt_act_stage +" \ndt_construction_stage: "+dt_con_stage+" \ndb Latitude: " + dt_lati+" \ndb Longitude: " + dt_longi+" \ndt_name"+dt_name);
+//                       System.out.println("dt_act_stage: "+dt_act_stage +" \ndt_construction_stage: "+dt_con_stage+" \ndb Latitude: " + dt_lati+" \ndb Longitude: " + dt_longi+" \ndt_name"+dt_name);
                     }
 
+                    query_keyId = "select * from att_details_customer where customer_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
 
-                    //Todo: remove comment after testing
-//                    if(user_role.equalsIgnoreCase("Administrator") || user_role.equalsIgnoreCase("Modifier")){
+                    if (resultSet.next()) {
+                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+                        dt_lati = resultSet.getString("customer_latitude");
+                        dt_longi = resultSet.getString("customer_longitude");
+                        dt_name = resultSet.getString("customer_name");
+                    }
+
+                    query_keyId = "select * from att_details_pop where pop_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+                        dt_lati = resultSet.getString("pop_latitude");
+                        dt_longi = resultSet.getString("pop_longitude");
+                        dt_name = resultSet.getString("pop_name");
+                    }
+
+                    query_keyId = "select * from att_details_chamber where chamber_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+                        dt_lati = resultSet.getString("latitude");
+                        dt_longi = resultSet.getString("longitude");
+                        dt_name = resultSet.getString("chamber_name");
+                    }
+
+                    query_keyId = "select * from att_details_pole where pole_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+                        dt_lati = resultSet.getString("latitude");
+                        dt_longi = resultSet.getString("longitude");
+                        dt_name = resultSet.getString("pole_name");
+                    }
+
+                    query_keyId = "select * from att_details_spliceclosure where spliceclosure_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+                        dt_lati = resultSet.getString("latitude");
+                        dt_longi = resultSet.getString("longitude");
+                        dt_name = resultSet.getString("spliceclosure_name");
+                    }
+
+                    query_keyId = "select * from att_details_odf where odf_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+                        dt_lati = resultSet.getString("odf_lat");
+                        dt_longi = resultSet.getString("odf_long");
+                        dt_name = resultSet.getString("odf_name");
+                    }
+
+                    query_keyId = "select * from att_details_cable where cable_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+//                        dt_lati = resultSet.getString("latitude");
+//                        dt_longi = resultSet.getString("longitude");
+                        dt_name = resultSet.getString("cable_name");
+                    }
+
+                    query_keyId = "select * from att_details_circuit where circuit_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+//                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+//                        dt_lati = resultSet.getString("latitude");
+//                        dt_longi = resultSet.getString("longitude");
+                        dt_name = resultSet.getString("circuit_name");
+                    }
+
+                    query_keyId = "select * from att_details_splitter where splitter_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+                        dt_lati = resultSet.getString("latitude");
+                        dt_longi = resultSet.getString("longitude");
+                        dt_name = resultSet.getString("splitter_name");
+                    }
+
+                    query_keyId = "select * from att_details_link where link_id=\'" + key + "\'";
+                    resultSet = statement.executeQuery(query_keyId);
+
+                    if (resultSet.next()) {
+//                        dt_act_stage = resultSet.getString("activation_stage");
+                        dt_con_stage = resultSet.getString("construction_stage");
+                        dt_lati = resultSet.getString("site_lat");
+                        dt_longi = resultSet.getString("site_long");
+                        dt_name = resultSet.getString("link_name");
+                    }
+
+                    if(user_role.equalsIgnoreCase("Administrator") || user_role.equalsIgnoreCase("Modifier")){
                         activation_stage.setText(dt_act_stage);
                         construction_stage.setText(dt_con_stage);
                         keyId.setText(key);
@@ -158,7 +218,7 @@ public class Tab_Details extends Activity {
                         site_name.setEnabled(false);
                         site_name.setCursorVisible(false);
                         site_name.setClickable(false);
-                    /*}
+                    }
                 else{
 
                     activation_stage.setText(dt_act_stage);
@@ -198,7 +258,7 @@ public class Tab_Details extends Activity {
                     site_name.setCursorVisible(false);
                     site_name.setClickable(false);
 
-                }*/
+                }
                 }
             } catch (SQLException se) {
                 se.printStackTrace();

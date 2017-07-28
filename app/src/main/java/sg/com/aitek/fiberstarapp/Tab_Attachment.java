@@ -115,6 +115,7 @@ public class Tab_Attachment extends Activity {
         serverPath                = properties.getProperty("serverPath");
 
         select      = (Button) findViewById(R.id.fileSelect);
+        upload =(Button)findViewById(R.id.btUploadFiles);
         file_info   = (TextView) findViewById(R.id.files);
         lvFileDetails=(ListView) findViewById(R.id.lvFileDetails);
         tvSelectedFileName=(TextView)findViewById(R.id.tvSelectedFileName);
@@ -149,7 +150,7 @@ public class Tab_Attachment extends Activity {
                 key_type      = key.substring(0,key.indexOf(':'));
                 key           = key.replaceFirst(replace,"");
             }
-            System.out.println("key id after: "+key);
+//            System.out.println("key id after: "+key);
 
             String query = "select * from vw_att_details_site where site_id=\'" + key + "\'";
             if(key_type.equalsIgnoreCase("site")) {
@@ -293,14 +294,18 @@ public class Tab_Attachment extends Activity {
         });
 
         //todo: remove comment after testing
-//        if(user_role.equalsIgnoreCase("Administrator")|| user_role.equalsIgnoreCase("Modifier")) {
+        if(user_role.equalsIgnoreCase("Administrator")|| user_role.equalsIgnoreCase("Modifier")) {
             select.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     loadFilefromMobile();
                 }
             });
-//        }
+        }
+        else{
+            select.setVisibility(View.GONE);
+            upload.setVisibility(View.GONE);
+        }
     }
 
     public void getFileDetails(){
@@ -614,7 +619,7 @@ public class Tab_Attachment extends Activity {
         }
         AttachmentFilesArray.clear();
         String size=String.valueOf(AttachmentFilesArray.size());
-        Log.d("AttachmentFiles size:",size);
+//        Log.d("AttachmentFiles size:",size);
     }
 
 

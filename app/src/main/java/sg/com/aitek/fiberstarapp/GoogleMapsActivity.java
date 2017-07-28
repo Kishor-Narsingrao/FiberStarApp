@@ -133,6 +133,9 @@ public class GoogleMapsActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_google_maps);
 
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
         Toolbar toolbar=(Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -615,7 +618,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                         if (chamber_id != null && chamber_lat != null && chamber_long != null) {
                             String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
-                            System.out.println("dataBase_latLong from chamber: " + dataBase_latLong);
+//                            System.out.println("dataBase_latLong from chamber: " + dataBase_latLong);
                             database_siteList.add(dataBase_latLong);
                         }
 //                        }
@@ -638,7 +641,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                         if (chamber_id != null && chamber_lat != null && chamber_long != null) {
                             String dataBase_latLong = entity_type + "," + chamber_system_id + "," + chamber_lat + "," + chamber_long;
-                            System.out.println("dataBase_latLong from pole: " + dataBase_latLong);
+//                            System.out.println("dataBase_latLong from pole: " + dataBase_latLong);
                             database_siteList.add(dataBase_latLong);
                         }
 //                        }
@@ -688,11 +691,11 @@ public class GoogleMapsActivity extends AppCompatActivity
 
 
                     if (latLngBounds.contains(latLong)) {
-                        System.out.println("count: " + count + " key Id: " + key+" type: "+type);
+//                        System.out.println("count: " + count + " key Id: " + key+" type: "+type);
                         String keyType = type + key;
 
                         if (!entity_list.contains(keyType)) {
-                            System.out.println("LatLong bound contains keyType: "+keyType);
+//                            System.out.println("LatLong bound contains keyType: "+keyType);
                             entity_list.add(keyType);
                         }
 

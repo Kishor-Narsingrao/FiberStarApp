@@ -266,17 +266,18 @@ public class Tab_Photo extends Activity {
             getImages();
 
             //TODO: remove coment afer testing
-//            if(user_role.equalsIgnoreCase("Administrator")|| user_role.equalsIgnoreCase("Modifier")){
+            //TODO: remove coment afer testing
+            if(user_role.equalsIgnoreCase("Administrator")|| user_role.equalsIgnoreCase("Modifier")){
             select.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     loadImagefromGallery();
                 }
             });
-            /*}
+            }
             else{
                 select.setVisibility(View.GONE);
-            }*/
+            }
 
         }
         catch (Exception e){
@@ -696,7 +697,7 @@ public class Tab_Photo extends Activity {
     public void makeHTTPCall() {
 
         prgDialog.setMessage("please wait ...");
-        prgDialog.show();
+//        prgDialog.show();
         AsyncHttpClient client = new AsyncHttpClient();
         // Don't forget to change the IP address to your LAN address. Port no as well.
         //client.post("http://192.168.1.41:9090/ImageUploadWebApp/uploadimg.jsp",
@@ -713,7 +714,7 @@ public class Tab_Photo extends Activity {
 //                        prgDialog.dismiss();
 
                         Toast.makeText(getApplicationContext(), "Uploading...",Toast.LENGTH_LONG).show();
-                        Log.d("Response",response);
+//                        Log.d("Response",response);
                     }
 
                     // When the response returned by REST has Http

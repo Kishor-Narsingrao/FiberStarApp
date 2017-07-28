@@ -222,7 +222,7 @@ public class LoginActivity extends AppCompatActivity {
                                 startActivity(intent);
                                 LoginActivity.this.finish();
                             }
-                        } else {
+                       } else {
                             AlertDialog.Builder builder1 = new AlertDialog.Builder(LoginActivity.this);
                             builder1.setTitle("Login Failed");
                             builder1.setMessage("LDAP/AD not authenticated  or failed");
@@ -275,17 +275,16 @@ public class LoginActivity extends AppCompatActivity {
         if (username.length() > 0) {
             if (password.length() > 0) {
                 //Toast.makeText(getApplicationContext(),"username and password are not null.. from login function",Toast.LENGTH_LONG).show();
-                DbConncetion dbConncetion = new DbConncetion(context);
+               DbConncetion dbConncetion = new DbConncetion(context);
                 Properties properties = dbConncetion.getProperties("FiberStar.properties");
                 final String POST_URL = properties.getProperty("ldap.url.USERVALUES");
-
                 String userName = username.getText().toString();
                 //System.out.println("username: " + userName);
                 String passWord = password.getText().toString();
                 //System.out.println("password: " + passWord);
                 //Toast.makeText(getApplicationContext(), userName + " " + passWord, Toast.LENGTH_SHORT).show();
 
-                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                 StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
                 StrictMode.setThreadPolicy(policy);
                 final String USER_AGENT = "Mozilla/5.0";
                 final String POST_PARAMS = "uname=" + userName + "&pw=" + passWord;

@@ -24,7 +24,7 @@ public class Popup_Menu extends TabActivity {
             key       = bundle.getString("key");
             user_role = bundle.getString("role");
             user_Name = bundle.getString("userName");
-            System.out.println("key values from Popup_Menu activity: "+key +" \nUser_Role is: "+user_role+" \nUser Name:"+user_Name);
+//            System.out.println("key values from Popup_Menu activity: "+key +" \nUser_Role is: "+user_role+" \nUser Name:"+user_Name);
         }
 
         // Android tab
